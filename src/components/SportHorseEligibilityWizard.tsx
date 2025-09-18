@@ -4,7 +4,8 @@ import React, { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, ChevronLeft, ChevronRight, Info, RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
+// Updated utility function to match new code
+function cx(...s: (string | undefined | false)[]) { return s.filter(Boolean).join(" "); }
 
 // Horse Coverage Eligibility – Combined (Sport + Western)
 // Start: ask if the horse is Western or Sport → then follow each product's rules.
@@ -19,7 +20,7 @@ import { cn } from "@/lib/utils";
 // - Sport Polo/Racing: Colic only.
 // - Sport General (Hunters/Jumpers/Fox/Show Driving/Breeding/Yearlings 31+ days/Rearing/Breed Show/Pleasure):
 //   Classic/Basic/Special/Medical Assistance + External Accident MM + Surgical + Colic.
-// - Age: 31 days–20 years → Classic/Basic/Special eligible. Over 20 years → limit Major Medical to Basic & Special (assumption for Western; matches Sport guide).
+// - Age: 31 days–20 years → Classic/Basic/Special eligible. Ponies over 20 years → Medical Assistance removed, Surgical/Colic removed, Major Medical eligibility based on value.
 
 const CATEGORIES = [
   { key: "western", label: "Western" },
@@ -30,22 +31,22 @@ const USES_SPORT = [
   { key: "eventing", label: "Eventing" },
   { key: "dressage", label: "Dressage" },
   { key: "polo_racing", label: "Polo or Racing" },
-  { key: "general_sport", label: "Hunters / Jumpers / Fox Hunting / Show Driving / Breeding / Yearlings (31+ days) / Rearing / Breed Show / Pleasure" },
+  { key: "general_sport", label: "Hunters / Jumpers / Fox Hunting / Show Driving / Breeding / Yearlings (31+ days) / Rearing / Breed Show / Pleasure (incl. under $20k with Medical Assistance)" },
 ];
 
 const USES_WESTERN = [
   { key: "barrel", label: "Barrel" },
-  { key: "general_western", label: "Cutting / Reining / Roping / Steer Wrestling / Ranch / Ranch Versatility / Breeding / Yearlings (31+ days) / Rearing / Breed Show / Pleasure" },
+  { key: "general_western", label: "Cutting / Reining / Roping / Steer Wrestling / Ranch / Ranch Versatility / Breeding / Yearlings (31+ days) / Rearing / Breed Show / Pleasure (incl. under $20k with Medical Assistance)" },
 ];
 
 const AGE_BANDS = [
   { key: "31d_20y", label: "31 days – 20 years" },
-  { key: "over20", label: "Over 20 years" },
+  { key: "over20", label: "A Pony over 20 years" },
 ];
 
 const PREFS = [
   { key: "broad_coverage", label: "Broad coverage for diagnostics/lameness" },
-  { key: "no_copay", label: "No co‑pay (okay with diagnostic/lameness sub‑limits)" },
+  { key: "no_copay", label: "No co-pay (okay with diagnostic/lameness sub-limits)" },
 ];
 
 export default function SportHorseEligibilityWizard() {
@@ -64,15 +65,10 @@ export default function SportHorseEligibilityWizard() {
   const valueStatus = useMemo(() => {
     if (!value) return null;
     if (Number.isNaN(numericValue)) return { type: "error", text: "Please enter a number." } as const;
-    if (numericValue < 20000) return { type: "info", text: "Not eligible for Major Medical (Under $20k)." } as const;
-    if (numericValue >= 100000)
-      return { type: "ok", text: "$100k+ value: eligible for Classic Major Medical without coinsurance (subject to use & age)." } as const;
+    if (numericValue < 20000) return { type: "info", text: "Not eligible for Major Medical (Under $20k). Medical Assistance still available." } as const;
+    if (numericValue >= 100000) return { type: "ok", text: "$100k+ value: eligible for Classic Major Medical without coinsurance (subject to use & age)." } as const;
     return { type: "ok", text: "Eligible for Major Medical (subject to use & age)." } as const;
   }, [numericValue, value]);
-
-  function togglePref(k: string) {
-    setPrefs((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
-  }
 
   function resetAll() {
     setStep(1); 
@@ -127,20 +123,17 @@ export default function SportHorseEligibilityWizard() {
   const ageAdjustedEligibility = useMemo(() => {
     const e = { ...baseEligibility } as Record<string, boolean>;
     if (age === "over20") {
-      // Over 20 → limit Major Medical to Basic & Special; remove Classic; (and disable Medical Assistance for Western assumption)
-      if (e.classic) e.classic = false;
-      // For consistency, keep Medical Assistance as allowed only when category/use allows it and value gate keeps MM on.
+      // For ponies over 20 years old:
+      // - Remove Medical Assistance (new logic)
+      // - Remove Surgical and Colic (new logic)
+      // - Keep Major Medical eligibility (Basic/Classic/Special) based on value
+      e.medical_assistance = false;
+      e.surgical = false;
+      e.colic = false;
+      // Classic Major Medical is already handled by base eligibility logic
     }
     return e;
   }, [baseEligibility, age]);
-
-  const majorMedicalEligible = useMemo(() => {
-    return (
-      ageAdjustedEligibility.basic ||
-      ageAdjustedEligibility.classic ||
-      ageAdjustedEligibility.special
-    );
-  }, [ageAdjustedEligibility]);
 
   const valueGateAllowsMM = useMemo(() => {
     if (Number.isNaN(numericValue)) return false;
@@ -150,13 +143,12 @@ export default function SportHorseEligibilityWizard() {
   const finalEligibility = useMemo(() => {
     const e = { ...ageAdjustedEligibility } as Record<string, boolean>;
     if (!valueGateAllowsMM) {
-      e.basic = false; 
-      e.classic = false; 
-      e.special = false; 
-      e.medical_assistance = false;
+      e.basic = false; e.classic = false; e.special = false;
+      // Medical Assistance is already handled in ageAdjustedEligibility for ponies over 20
+      // For horses 31 days - 20 years, Medical Assistance remains available if base allowed
     }
     return e;
-  }, [ageAdjustedEligibility, valueGateAllowsMM]);
+  }, [ageAdjustedEligibility, valueGateAllowsMM, age]);
 
   const recommendations = useMemo(() => {
     const recs: string[] = [];
@@ -175,6 +167,7 @@ export default function SportHorseEligibilityWizard() {
       if (finalEligibility.classic) recs.push("Classic Major Medical (with coinsurance)");
       else if (finalEligibility.special) recs.push("Special Major Medical");
       else if (finalEligibility.basic) recs.push(category === "western" && use === "barrel" ? "Basic Major Medical — $7,500 limit only" : "Basic Major Medical");
+      else if (finalEligibility.medical_assistance) recs.push("Medical Assistance — available even under $20k");
     }
     const addNonMM: string[] = [];
     if (finalEligibility.external_accident) addNonMM.push("Equine External Accident Major Medical");
@@ -183,16 +176,17 @@ export default function SportHorseEligibilityWizard() {
     return { recs, addNonMM };
   }, [finalEligibility, prefs, category, use]);
 
-  const showUnder20kMessage = !Number.isNaN(numericValue) && numericValue < 20000;
-  const show100kNote = !Number.isNaN(numericValue) && numericValue >= 100000 && finalEligibility.classic;
-
   const canContinueCat = !!category;
   const canContinueStep1 = valueStatus && valueStatus.type !== "error" && value !== "";
   const canContinueStep2 = !!use;
   const canContinueStep3 = !!age;
+  const canContinueStep4 = prefs.length > 0; // Make preferences mandatory
+
+  const showUnder20kMessage = !Number.isNaN(numericValue) && numericValue < 20000;
+  const show100kNote = !Number.isNaN(numericValue) && numericValue >= 100000 && finalEligibility.classic;
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-4 sm:p-6">
+    <div className="w-full max-w-5xl mx-auto p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl sm:text-3xl font-semibold">Medical Coverage Eligibility</h1>
         <Button variant="ghost" onClick={resetAll} className="gap-2">
@@ -206,10 +200,10 @@ export default function SportHorseEligibilityWizard() {
         <Card className="mt-4 shadow-sm">
           <CardContent className="p-6">
             <h2 className="text-xl font-medium mb-2">Step 0 · Type of Horse</h2>
-            <p className="text-sm text-gray-600 mb-3">Is this a Western or Sport Horse?</p>
+            <p className="text-sm text-gray-600 mb-3">Is this a Western or Sport horse?</p>
             <div className="grid sm:grid-cols-2 gap-3">
               {CATEGORIES.map((c) => (
-                <button key={c.key} onClick={() => setCategory(c.key)} className={cn("p-4 rounded-2xl border text-left hover:shadow-sm transition", category===c.key && "ring-2 ring-offset-2")}> 
+                <button key={c.key} onClick={() => setCategory(c.key)} className={cx("p-4 rounded-2xl border text-left hover:shadow-sm transition", category===c.key && "ring-2 ring-offset-2")}> 
                   <div className="font-medium mb-1">{c.label}</div>
                   <div className="text-xs text-gray-600">Select category</div>
                 </button>
@@ -229,7 +223,7 @@ export default function SportHorseEligibilityWizard() {
               <h2 className="text-xl font-medium">Step 1 · Horse Value</h2>
               <Button variant="ghost" onClick={() => setStep(1)} className="gap-2"><ChevronLeft className="h-4 w-4" /> Back</Button>
             </div>
-            <p className="text-sm text-gray-600 mb-4">Enter the insured value (USD).</p>
+            <p className="text-sm text-gray-600 mb-3">Enter the insured value (USD).</p>
             <div className="flex gap-3 items-center">
               <input
                 type="text"
@@ -245,12 +239,7 @@ export default function SportHorseEligibilityWizard() {
             </div>
             {valueStatus && (
               <div
-                className={cn(
-                  "mt-4 text-sm flex items-start gap-2",
-                  valueStatus.type === "error" && "text-red-600",
-                  valueStatus.type === "ok" && "text-emerald-700",
-                  valueStatus.type === "info" && "text-slate-700"
-                )}
+                className={cx("mt-4 text-sm flex items-start gap-2", valueStatus.type === "error" && "text-red-600", valueStatus.type === "ok" && "text-emerald-700", valueStatus.type === "info" && "text-slate-700")}
               >
                 {valueStatus.type === "error" ? (
                   <AlertCircle className="h-4 w-4 mt-0.5" />
@@ -260,11 +249,7 @@ export default function SportHorseEligibilityWizard() {
                 <span>{valueStatus.text}</span>
               </div>
             )}
-            {showUnder20kMessage && (
-              <p className="mt-2 text-xs text-slate-500">
-                For horses under $20,000, please see the &quot;Under $20k&quot; options.
-              </p>
-            )}
+            {showUnder20kMessage && (<p className="mt-2 text-xs text-slate-500">For horses under $20,000, Major Medical is unavailable. You can still consider Medical Assistance.</p>)}
           </CardContent>
         </Card>
       )}
@@ -281,10 +266,7 @@ export default function SportHorseEligibilityWizard() {
                 <button
                   key={u.key}
                   onClick={() => setUse(u.key)}
-                  className={cn(
-                    "p-4 rounded-2xl border text-left hover:shadow-sm transition",
-                    use === u.key && "ring-2 ring-offset-2"
-                  )}
+                  className={cx("p-4 rounded-2xl border text-left hover:shadow-sm transition", use===u.key && "ring-2 ring-offset-2")}
                 >
                   <div className="font-medium mb-1">{u.label}</div>
                   <div className="text-xs text-gray-600">Select the primary use/discipline</div>
@@ -310,10 +292,7 @@ export default function SportHorseEligibilityWizard() {
                 <button
                   key={a.key}
                   onClick={() => setAge(a.key)}
-                  className={cn(
-                    "p-4 rounded-2xl border text-left hover:shadow-sm transition",
-                    age === a.key && "ring-2 ring-offset-2"
-                  )}
+                  className={cx("p-4 rounded-2xl border text-left hover:shadow-sm transition", age===a.key && "ring-2 ring-offset-2")}
                 >
                   <div className="font-medium mb-1">{a.label}</div>
                   <div className="text-xs text-gray-600">Choose the age range</div>
@@ -334,24 +313,26 @@ export default function SportHorseEligibilityWizard() {
               <h2 className="text-xl font-medium">Step 4 · Coverage Preferences</h2>
               <Button variant="ghost" onClick={() => setStep(4)} className="gap-2"><ChevronLeft className="h-4 w-4" /> Back</Button>
             </div>
-            <p className="text-sm text-gray-600 mt-1 mb-3">Optional — select what matters most to you.</p>
+            <p className="text-sm text-gray-600 mt-1 mb-3">Please select what matters most to you.</p>
             <div className="grid sm:grid-cols-2 gap-3">
               {PREFS.map((p) => (
                 <button
                   key={p.key}
                   onClick={() => setPrefs((prev) => prev.includes(p.key) ? prev.filter(x=>x!==p.key) : [...prev, p.key])}
-                  className={cn(
-                    "p-4 rounded-2xl border text-left hover:shadow-sm transition",
-                    prefs.includes(p.key) && "ring-2 ring-offset-2"
-                  )}
+                  className={cx("p-4 rounded-2xl border text-left hover:shadow-sm transition", prefs.includes(p.key) && "ring-2 ring-offset-2")}
                 >
                   <div className="font-medium mb-1">{p.label}</div>
                   <div className="text-xs text-gray-600">Tap to {prefs.includes(p.key) ? "remove" : "select"}</div>
                 </button>
               ))}
             </div>
-            <div className="flex justify-end mt-4">
-              <Button onClick={() => setStep(6)} className="gap-2">See Results <ChevronRight className="h-4 w-4" /></Button>
+            <div className="mt-4">
+              {prefs.length === 0 && (
+                <p className="text-sm text-gray-500 mb-3">Please select at least one preference to continue.</p>
+              )}
+              <div className="flex justify-end">
+                <Button onClick={() => setStep(6)} disabled={!canContinueStep4} className="gap-2">See Results <ChevronRight className="h-4 w-4" /></Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -379,7 +360,7 @@ function ProgressBar({ step }: { step: number }) {
   return (
     <div className="grid grid-cols-6 gap-2">
       {labels.map((l, i) => (
-        <div key={l} className={cn("h-2 rounded-full", i < step ? "bg-[#2bd5db]" : "bg-gray-200")}></div>
+        <div key={l} className={cx("h-2 rounded-full", i < step ? "bg-[#2BD5DB]" : "bg-gray-200")}></div>
       ))}
     </div>
   );
@@ -441,7 +422,7 @@ function Results({
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-3 mt-2">
+        <div className="grid sm:grid-cols-4 gap-3 mt-2">
           <InfoTile title="Type" value={category ? (category === "western" ? "Western" : "Sport Horse") : "—"} />
           <InfoTile title="Value" value={Number.isFinite(value) ? `$${value.toLocaleString()}` : "—"} />
           <InfoTile title="Use" value={useLabel} />
