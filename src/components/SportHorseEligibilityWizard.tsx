@@ -20,7 +20,7 @@ function cx(...s: (string | undefined | false)[]) { return s.filter(Boolean).joi
 // - Sport Polo/Racing: Colic only.
 // - Sport General (Hunters/Jumpers/Fox/Show Driving/Breeding/Yearlings 31+ days/Rearing/Breed Show/Pleasure):
 //   Classic/Basic/Special/Medical Assistance + External Accident MM + Surgical + Colic.
-// - Age: 31 days–20 years → Classic/Basic/Special eligible. Ponies over 20 years → Medical Assistance removed, Surgical/Colic removed, Major Medical eligibility based on value.
+// - Age: 31 days–20 years → Classic/Basic/Special eligible. Ponies over 20 years → Medical Assistance removed, Surgical/Colic removed, Classic Major Medical removed, Basic/Special Major Medical eligibility based on value.
 
 const CATEGORIES = [
   { key: "western", label: "Western" },
@@ -126,11 +126,12 @@ export default function SportHorseEligibilityWizard() {
       // For ponies over 20 years old:
       // - Remove Medical Assistance (new logic)
       // - Remove Surgical and Colic (new logic)
-      // - Keep Major Medical eligibility (Basic/Classic/Special) based on value
+      // - Remove Classic Major Medical (new logic)
+      // - Keep Basic and Special Major Medical eligibility based on value
       e.medical_assistance = false;
       e.surgical = false;
       e.colic = false;
-      // Classic Major Medical is already handled by base eligibility logic
+      e.classic = false; // Remove Classic Major Medical for ponies over 20
     }
     return e;
   }, [baseEligibility, age]);
