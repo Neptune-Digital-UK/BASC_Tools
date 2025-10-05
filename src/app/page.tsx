@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calculator, ArrowRight, Users, FileText } from 'lucide-react'
+import { Calculator, ArrowRight, Users, FileText, Shield } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -73,23 +73,38 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* Placeholder for Future Tools */}
-            <Card className="hover:shadow-lg transition-shadow duration-200 opacity-60 shadow-sm">
+            {/* Equine Risk Selector Tool */}
+            <Card className="hover:shadow-lg transition-shadow duration-200 shadow-sm">
               <CardHeader>
                 <div className="flex items-center space-x-3 mb-2">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <Users className="h-6 w-6 text-gray-400" />
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Shield className="h-6 w-6 text-blue-600" />
                   </div>
-                  <CardTitle className="text-lg text-gray-400">Mortality Calculator</CardTitle>
+                  <CardTitle className="text-lg">Equine Risk Selector</CardTitle>
                 </div>
-                <CardDescription className="text-gray-400">
-                  Coming soon: Get a quick All Risks of Mortality Rate in a few clicks.
+                <CardDescription>
+                  Determine appetite eligibility for equine mortality insurance based on breed, use, and category with instant results.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button disabled className="w-full">
-                  Coming Soon
-                </Button>
+                <div className="space-y-8">
+                  <div className="text-sm text-gray-600">
+                    <strong>Features:</strong>
+                    <ul className="mt-1 ml-4 list-disc">
+                      <li>Comprehensive breed & use categories</li>
+                      <li>Real-time eligibility assessment</li>
+                      <li>Search and filter capabilities</li>
+                      <li>Direct underwriting contact</li>
+                      <li>Printable summaries</li>
+                    </ul>
+                  </div>
+                  <Link href="/tools/equine-risk-selector">
+                    <Button className="w-full group mt-8">
+                      Launch Tool
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
 
