@@ -17,7 +17,17 @@ import { CheckCircle, AlertTriangle, Info, Mail } from "lucide-react";
  */
 
 // ---------- Appetite Data (edit here) ----------
-const DATA = [
+interface Rule {
+  label: string;
+  status: string;
+  note?: string;
+}
+
+const DATA: Array<{
+  category: string;
+  notes?: string;
+  rules: Rule[];
+}> = [
   {
     category: "Western",
     notes: "Performance uses should be specified.",
@@ -282,7 +292,7 @@ export default function EquineRiskSelector() {
                 <Button>Pre-fill email to UW</Button>
               </a>
             </div>
-            <p className="text-xs text-muted-foreground pt-2">Guidance is illustrative and subject to policy forms and underwriting review. If a risk doesn't fit this guide, email underwriting@basculeuw.com.</p>
+            <p className="text-xs text-muted-foreground pt-2">Guidance is illustrative and subject to policy forms and underwriting review. If a risk doesn&apos;t fit this guide, email underwriting@basculeuw.com.</p>
           </CardContent>
         </Card>
       )}
