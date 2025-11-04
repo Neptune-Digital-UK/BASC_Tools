@@ -521,13 +521,13 @@ ${Object.entries(result.coverage_eligibility.eligible_coverages)
   .map(([k, v]) => {
     const name = formatCoverageName(k);
     let details = `- ${name}`;
-    if (typeof v === 'object' && v.notes) {
+    if (typeof v === 'object' && 'notes' in v && v.notes) {
       details += `\n  ${v.notes}`;
     }
-    if (k === 'classic_major_medical' && typeof v === 'object') {
+    if (k === 'classic_major_medical' && typeof v === 'object' && 'coinsurance_required' in v) {
       details += v.coinsurance_required ? '\n  (Coinsurance required)' : '\n  (No coinsurance required)';
     }
-    if (k === 'basic_major_medical' && typeof v === 'object' && v.limit) {
+    if (k === 'basic_major_medical' && typeof v === 'object' && 'limit' in v && v.limit) {
       details += `\n  (Limit: $${v.limit.toLocaleString()})`;
     }
     return details;

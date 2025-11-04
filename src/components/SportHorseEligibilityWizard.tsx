@@ -149,7 +149,7 @@ export default function SportHorseEligibilityWizard() {
       // For horses 31 days - 20 years, Medical Assistance remains available if base allowed
     }
     return e;
-  }, [ageAdjustedEligibility, valueGateAllowsMM, age]);
+  }, [ageAdjustedEligibility, valueGateAllowsMM]);
 
   const recommendations = useMemo(() => {
     const recs: string[] = [];
