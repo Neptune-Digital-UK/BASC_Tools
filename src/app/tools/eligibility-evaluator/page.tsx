@@ -223,6 +223,7 @@ export default function EligibilityEvaluator() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<EvaluationData | null>(null);
+  const [submittedFormData, setSubmittedFormData] = useState<FormData | null>(null);
   const [copied, setCopied] = useState(false);
   const [showDebugModal, setShowDebugModal] = useState(false);
   const [debugData, setDebugData] = useState<{
@@ -445,6 +446,8 @@ Respond with valid JSON only.`,
       // Small delay to show 100% completion before closing modal
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      // Store the submitted form data alongside the result
+      setSubmittedFormData(formData);
       setResult(evaluationResult);
     } catch (err) {
       console.error("❌ Submission Error:", err);
@@ -466,6 +469,7 @@ Respond with valid JSON only.`,
       sumInsured: "",
     });
     setResult(null);
+    setSubmittedFormData(null);
     setError(null);
     setDebugData(null);
   }
@@ -478,7 +482,10 @@ ELIGIBILITY SUMMARY - ${result.evaluation_metadata.horse_name}
 
 Horse Details:
 - Name: ${result.evaluation_metadata.horse_name}
-- Age: ${result.evaluation_metadata.age_years} years
+- Age: ${result.evaluation_metadata.age_years} years${submittedFormData ? `
+- Breed: ${submittedFormData.breed}
+- Sex: ${submittedFormData.sex}
+- Activity: ${submittedFormData.use}` : ''}
 - Value: $${result.coverage_eligibility.value_assessment.insured_value.toLocaleString()}
 - Category: ${result.risk_appetite.category.toUpperCase()}
 
@@ -511,7 +518,10 @@ HORSE ELIGIBILITY EVALUATION
 
 Horse Details:
 - Name: ${result.evaluation_metadata.horse_name}
-- Age: ${result.evaluation_metadata.age_years} years
+- Age: ${result.evaluation_metadata.age_years} years${submittedFormData ? `
+- Breed: ${submittedFormData.breed}
+- Sex: ${submittedFormData.sex}
+- Activity: ${submittedFormData.use}` : ''}
 - Insured Value: $${result.coverage_eligibility.value_assessment.insured_value.toLocaleString()}
 - Category: ${result.risk_appetite.category.toUpperCase()}
 
@@ -822,9 +832,16 @@ ${Object.entries(result.coverage_eligibility.eligible_coverages)
           <Card className="shadow-sm">
             <CardContent className="p-4 sm:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Horse Information</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 <InfoTile label="Horse Name" value={result.evaluation_metadata.horse_name} />
                 <InfoTile label="Age" value={`${result.evaluation_metadata.age_years} years`} />
+                {submittedFormData && (
+                  <>
+                    <InfoTile label="Breed" value={submittedFormData.breed} />
+                    <InfoTile label="Sex" value={submittedFormData.sex} />
+                    <InfoTile label="Activity" value={submittedFormData.use} />
+                  </>
+                )}
                 <InfoTile 
                   label="Insured Value" 
                   value={`$${result.coverage_eligibility.value_assessment.insured_value.toLocaleString()}`} 
