@@ -11,6 +11,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Progress } from "@/components/ui/progress";
 import {
   Combobox,
@@ -231,6 +238,18 @@ export default function EligibilityEvaluator() {
     response: any;
     responseTime: number;
   } | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Simulate progress while loading
   useEffect(() => {
@@ -561,49 +580,94 @@ ${Object.entries(result.coverage_eligibility.eligible_coverages)
           </p>
         </header>
 
-        {/* Loading Modal */}
-      <Dialog open={loading} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
-              AI Evaluation in Progress
-            </DialogTitle>
-            <DialogDescription>
-              Analyzing {formData.horseName}&apos;s eligibility...
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{loadingMessage}</span>
-                <span className="font-medium text-blue-600">{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-            </div>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-              <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-gray-700">
-                  <p className="font-medium text-gray-900 mb-1">What&apos;s happening:</p>
-                  <ul className="space-y-1 text-xs">
-                    <li>• Validating horse details and coverage rules</li>
-                    <li>• Checking breed and activity eligibility</li>
-                    <li>• Calculating value-based coverage options</li>
-                    <li>• Generating personalized recommendations</li>
-                  </ul>
+        {/* Loading Modal - Drawer on mobile, Dialog on desktop */}
+        {isMobile ? (
+          <Drawer open={loading} onOpenChange={() => {}} dismissible={false}>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle className="flex items-center gap-2 justify-center">
+                  <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                  AI Evaluation in Progress
+                </DrawerTitle>
+                <DrawerDescription className="text-center">
+                  Analyzing {formData.horseName}&apos;s eligibility...
+                </DrawerDescription>
+              </DrawerHeader>
+              
+              <div className="space-y-4 px-4 pb-6">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">{loadingMessage}</span>
+                    <span className="font-medium text-blue-600">{Math.round(progress)}%</span>
+                  </div>
+                  <Progress value={progress} className="h-2" />
                 </div>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-gray-700">
+                      <p className="font-medium text-gray-900 mb-1">What&apos;s happening:</p>
+                      <ul className="space-y-1 text-xs">
+                        <li>• Validating horse details and coverage rules</li>
+                        <li>• Checking breed and activity eligibility</li>
+                        <li>• Calculating value-based coverage options</li>
+                        <li>• Generating personalized recommendations</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-center text-gray-500">
+                  This typically takes 10-30 seconds. Please wait...
+                </p>
               </div>
-            </div>
-            
-            <p className="text-xs text-center text-gray-500">
-              This typically takes 10-30 seconds. Please wait...
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
+            </DrawerContent>
+          </Drawer>
+        ) : (
+          <Dialog open={loading} onOpenChange={() => {}}>
+            <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                  AI Evaluation in Progress
+                </DialogTitle>
+                <DialogDescription>
+                  Analyzing {formData.horseName}&apos;s eligibility...
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">{loadingMessage}</span>
+                    <span className="font-medium text-blue-600">{Math.round(progress)}%</span>
+                  </div>
+                  <Progress value={progress} className="h-2" />
+                </div>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-gray-700">
+                      <p className="font-medium text-gray-900 mb-1">What&apos;s happening:</p>
+                      <ul className="space-y-1 text-xs">
+                        <li>• Validating horse details and coverage rules</li>
+                        <li>• Checking breed and activity eligibility</li>
+                        <li>• Calculating value-based coverage options</li>
+                        <li>• Generating personalized recommendations</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-center text-gray-500">
+                  This typically takes 10-30 seconds. Please wait...
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
       {!result && (
         <Card className="shadow-sm">
