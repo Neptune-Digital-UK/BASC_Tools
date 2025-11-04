@@ -5,16 +5,38 @@ A production-ready React application suite for insurance agents, starting with B
 ## Features
 
 ### Current Tools
-- **Sport Horse Eligibility Wizard**: Step-by-step eligibility assessment based on horse value, use, age, and coverage preferences
+
+#### 🤖 AI Eligibility Evaluator (NEW)
+- **Form-Based Evaluation**: Simple form to collect horse details
+- **AI-Powered Analysis**: Integrated with Chatbase AI API for intelligent eligibility evaluation
+- **Instant Results**: Real-time evaluation with comprehensive coverage recommendations
+- **Export Summaries**: One-click copy of formatted evaluation summaries
+- **Visual Results Display**: Color-coded status indicators and coverage breakdowns
+
+#### 📋 Eligibility Response Parser
+- **JSON Parser**: Paste AI-generated JSON responses for formatted viewing
+- **Professional Display**: Clean, organized presentation of eligibility data
+- **Coverage Breakdown**: Visual display of all eligible coverages with details
+- **Quick Actions**: Copy summaries, print results, export data
+
+#### 🏇 Medical Coverage Eligibility Wizard
+- **Step-by-Step Assessment**: Interactive wizard for eligibility assessment
+- **Sport & Western Categories**: Coverage for both horse categories
 - **Real-time Validation**: Instant feedback on eligibility criteria
-- **Responsive Design**: Optimized for desktop and mobile devices
-- **Clean UI**: Modern, accessible interface with clear visual hierarchy
-- **TypeScript**: Full type safety and better developer experience
+- **Preference Matching**: AI recommendations based on coverage preferences
+
+#### 🛡️ Equine Risk Selector
+- **Appetite Guidelines**: Quick reference for risk appetite by breed/use
+- **Search & Filter**: Find eligibility rules instantly
+- **Category-Based**: Organized by Western, Sport Horse, Breed-Specific, and more
+- **UW Contact**: Direct links to underwriting for questions
 
 ### Platform Features
 - **Multi-tool Architecture**: Easy to add new insurance tools
 - **Consistent Navigation**: Unified experience across all tools
 - **Scalable Design**: Built to accommodate future tools and features
+- **Responsive Design**: Optimized for desktop and mobile devices
+- **TypeScript**: Full type safety and better developer experience
 
 ## Technology Stack
 
@@ -69,28 +91,67 @@ src/
 │   ├── page.tsx           # Homepage with tool navigation
 │   └── tools/             # Individual tool pages
 │       ├── layout.tsx     # Tools section layout
+│       ├── eligibility-evaluator/
+│       │   └── page.tsx   # AI Eligibility Evaluator (NEW)
+│       ├── eligibility-parser/
+│       │   └── page.tsx   # Eligibility Response Parser
+│       ├── equine-risk-selector/
+│       │   └── page.tsx   # Equine Risk Selector
 │       ├── sport-horse-eligibility/
-│       │   └── page.tsx   # Sport Horse Eligibility Tool
+│       │   └── page.tsx   # Medical Coverage Eligibility Wizard
 │       └── template/
 │           └── page.tsx   # Template for new tools
 ├── components/            # React components
 │   ├── ui/                # Reusable UI components
 │   │   ├── button.tsx     # Button component
-│   │   └── card.tsx       # Card component
-│   ├── SportHorseEligibilityWizard.tsx  # Main wizard component
-│   └── ToolNavigation.tsx # Navigation component for tools
+│   │   ├── card.tsx       # Card component
+│   │   └── input.tsx      # Input component
+│   ├── EquineRiskSelector.tsx           # Risk appetite component
+│   ├── SportHorseEligibilityWizard.tsx  # Eligibility wizard component
+│   └── ToolNavigation.tsx               # Navigation component for tools
 └── lib/
     └── utils.ts           # Utility functions
 ```
 
 ## Eligibility Logic
 
-The wizard implements Bascule's eligibility rules:
+The tools implement Bascule's comprehensive eligibility rules:
 
-1. **Value Gate**: Horses under $20k are not eligible for Major Medical
-2. **Use Categories**: Different disciplines have different coverage options
-3. **Age Restrictions**: Horses over 20 years have limited Major Medical options
-4. **Preference Matching**: Recommendations based on coverage preferences
+### Risk Appetite Rules
+- **Western Uses**: Cutting, Reining, Barrel Racing, Roping, Ranch, etc.
+- **Sport Horse Uses**: Hunters, Jumpers, Dressage, Eventing, Polo, etc.
+- **Breed-Specific**: Eligibility by breed (Thoroughbred, Arabian, Morgan, etc.)
+- **Special Cases**: Draft horses, Quarter Horse racing, breeding considerations
+
+### Coverage Eligibility Rules
+1. **Value Gates**: 
+   - Under $20k: Major Medical not available (Medical Assistance still eligible)
+   - $20k-$99k: Major Medical available with coinsurance
+   - $100k+: Classic Major Medical without coinsurance
+
+2. **Use Categories**: Different disciplines have different coverage options:
+   - Sport Eventing: Limited to External Accident MM & Surgical
+   - Sport Dressage: Value-dependent eligibility
+   - Western Barrel: Limited to External Accident MM, Basic MM ($7,500 limit), Surgical
+   - General categories: Full coverage suite available
+
+3. **Age Restrictions**: 
+   - 31 days - 20 years: Standard eligibility
+   - Ponies over 20 years: Limited options (no Medical Assistance, Surgical, Colic, or Classic)
+
+4. **AI-Powered Recommendations**: Context-aware suggestions based on all factors
+
+## AI Integration
+
+The AI Eligibility Evaluator integrates with Chatbase API:
+
+- **Endpoint**: `https://www.chatbase.co/api/v1/chat`
+- **Authentication**: Bearer token
+- **Input Format**: Structured JSON with horse details
+- **Output Format**: Comprehensive eligibility evaluation with recommendations
+
+See `ELIGIBILITY_AI_AGENT.md` for complete system message and integration details.
+See `AI_EVALUATOR_GUIDE.md` for user guide and troubleshooting.
 
 ## Deployment
 

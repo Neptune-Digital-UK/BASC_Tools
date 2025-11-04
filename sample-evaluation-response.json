@@ -1,0 +1,78 @@
+{
+  "evaluation_metadata": {
+    "horse_id": "6502DA54-FB9A-5846-8D9F-D2530D546AB2",
+    "horse_name": "Snowballs",
+    "evaluated_at": "2025-11-04T12:00:00Z",
+    "age_years": 18
+  },
+  "risk_appetite": {
+    "status": "ELIGIBLE",
+    "category": "sport",
+    "reason": "Thoroughbred used for Pleasure riding is eligible per Sport Horse appetite guidelines",
+    "underwriting_notes": null
+  },
+  "coverage_eligibility": {
+    "value_assessment": {
+      "insured_value": 7500,
+      "qualifies_for_major_medical": false,
+      "qualifies_for_classic_without_coinsurance": false,
+      "notes": "Horse value of $7,500 is below $20,000 threshold. Major Medical coverages (Classic, Basic, Special) are not available. Medical Assistance remains available."
+    },
+    "eligible_coverages": {
+      "classic_major_medical": {
+        "eligible": false,
+        "coinsurance_required": true,
+        "notes": "Not eligible due to value under $20,000"
+      },
+      "basic_major_medical": {
+        "eligible": false,
+        "limit": null,
+        "notes": "Not eligible due to value under $20,000"
+      },
+      "special_major_medical": {
+        "eligible": false,
+        "notes": "Not eligible due to value under $20,000"
+      },
+      "medical_assistance": {
+        "eligible": true,
+        "notes": "Available for horses under $20,000"
+      },
+      "external_accident_mm": {
+        "eligible": true
+      },
+      "surgical": {
+        "eligible": true
+      },
+      "colic": {
+        "eligible": true
+      }
+    },
+    "recommendations": [
+      {
+        "coverage_type": "Medical Assistance",
+        "priority": "primary",
+        "reason": "Best option for horses valued under $20,000"
+      },
+      {
+        "coverage_type": "External Accident Major Medical",
+        "priority": "secondary",
+        "reason": "Provides coverage for accident-related medical expenses"
+      },
+      {
+        "coverage_type": "Surgical + Colic",
+        "priority": "secondary",
+        "reason": "Specific coverage for surgical procedures and colic episodes"
+      }
+    ]
+  },
+  "next_steps": [
+    "Consider Medical Assistance coverage as primary option",
+    "Evaluate External Accident Major Medical for additional protection",
+    "Optional: Add Surgical and/or Colic coverage for specific incident protection"
+  ],
+  "warnings": [
+    "Horse value of $7,500 does not meet $20,000 minimum for Major Medical coverages",
+    "Horse is 18 years old - within standard eligibility range (31 days - 20 years)"
+  ]
+}
+
