@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import Script from "next/script";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -631,6 +632,15 @@ ${Object.entries(result.coverage_eligibility.eligible_coverages)
 
   return (
     <>
+      <Script
+        id="chatbase-embed"
+        strategy="lazyOnload"
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="wVBzSogkMNl7a3jA_QwUu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+          `,
+        }}
+      />
       <ToolNavigation toolName="Eligibility Evaluator" />
       <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
         <header className="flex flex-col gap-2">
