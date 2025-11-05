@@ -6,6 +6,13 @@ import Script from "next/script";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
+// TypeScript declaration for Chatbase widget
+declare global {
+  interface Window {
+    chatbase?: (action: string) => void;
+  }
+}
 import {
   Dialog,
   DialogContent,
@@ -242,6 +249,7 @@ export default function EligibilityEvaluator() {
   } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [urlParamsProcessed, setUrlParamsProcessed] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   
   const searchParams = useSearchParams();
   const autoSubmitTriggered = useRef(false);
@@ -346,6 +354,114 @@ export default function EligibilityEvaluator() {
     );
   }
 
+  async function callAIEvaluation(horseData: any, isRetry: boolean = false): Promise<any> {
+    // Prepare API request payload
+    const requestPayload = {
+      messages: [
+        {
+          content: `Please evaluate the following horse eligibility data and respond with ONLY valid JSON (no trailing commas, no markdown, no explanation text - just the raw JSON object):
+
+${JSON.stringify(horseData, null, 2)}
+
+Respond with valid JSON only.`,
+          role: "user",
+        },
+      ],
+      chatbotId: "wVBzSogkMNl7a3jA_QwUu",
+    };
+
+    if (!isRetry) {
+      console.log("📤 API Request Payload:", JSON.stringify(requestPayload, null, 2));
+      console.log("🌐 API Endpoint:", "https://www.chatbase.co/api/v1/chat");
+      console.log("🔑 Using Authorization: Bearer 2ab89480-****-****-****-************");
+    } else {
+      console.log("🔄 Retrying API call...");
+    }
+
+    setLoadingMessage(isRetry ? "Retrying AI evaluation..." : "Contacting AI agent...");
+    
+    // Call Chatbase API
+    const startTime = performance.now();
+    const response = await fetch("https://www.chatbase.co/api/v1/chat", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer 2ab89480-00e4-46cc-9e5c-051b28980905",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestPayload),
+    });
+    const endTime = performance.now();
+    
+    setLoadingMessage("AI analyzing eligibility criteria...");
+
+    console.log(`⏱️  API Response Time: ${(endTime - startTime).toFixed(2)}ms`);
+    console.log("📥 API Response Status:", response.status, response.statusText);
+    
+    if (!isRetry) {
+      console.log("📋 Response Headers:", Object.fromEntries(response.headers.entries()));
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ API Error Response Body:", errorText);
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("📥 Raw API Response Data:", JSON.stringify(data, null, 2));
+    
+    setLoadingMessage("Processing evaluation results...");
+    
+    // Extract the content from the response
+    let evaluationResult;
+    if (data.text) {
+      console.log("📄 AI Response Text (before cleaning):", data.text);
+      
+      // Try to parse the text as JSON
+      // Remove markdown code blocks if present
+      let cleanedText = data.text;
+      if (cleanedText.includes("```json")) {
+        console.log("🧹 Removing ```json markdown blocks...");
+        cleanedText = cleanedText.replace(/```json\n?/g, "").replace(/```\n?/g, "");
+      } else if (cleanedText.includes("```")) {
+        console.log("🧹 Removing ``` markdown blocks...");
+        cleanedText = cleanedText.replace(/```\n?/g, "");
+      }
+      
+      // Try to find JSON in the text if it contains other content
+      const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        console.log("🔍 Found JSON object in response, extracting...");
+        cleanedText = jsonMatch[0];
+      }
+      
+      // Remove trailing commas before closing braces/brackets (invalid JSON)
+      console.log("🧹 Removing trailing commas...");
+      cleanedText = cleanedText.replace(/,(\s*[}\]])/g, '$1');
+      
+      // Check if the text is a JSON string (wrapped in quotes with escaped content)
+      if (cleanedText.startsWith('"') && cleanedText.endsWith('"')) {
+        console.log("🧹 Detected JSON string, parsing twice...");
+        cleanedText = JSON.parse(cleanedText); // First parse to get the actual JSON string
+      }
+      
+      console.log("📄 Cleaned Text (ready to parse):", cleanedText);
+      evaluationResult = JSON.parse(cleanedText.trim());
+      console.log("✅ Successfully Parsed Evaluation Result:", JSON.stringify(evaluationResult, null, 2));
+    } else {
+      console.error("❌ Unexpected response format - no 'text' field found");
+      console.error("❌ Available fields:", Object.keys(data));
+      throw new Error("Unexpected API response format");
+    }
+
+    return {
+      evaluationResult,
+      requestPayload,
+      data,
+      responseTime: endTime - startTime
+    };
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -376,109 +492,46 @@ export default function EligibilityEvaluator() {
 
       console.log("📦 Formatted Horse Data (to be sent to AI):", JSON.stringify(horseData, null, 2));
 
-      // Prepare API request payload
-      const requestPayload = {
-        messages: [
-          {
-            content: `Please evaluate the following horse eligibility data and respond with ONLY valid JSON (no trailing commas, no markdown, no explanation text - just the raw JSON object):
-
-${JSON.stringify(horseData, null, 2)}
-
-Respond with valid JSON only.`,
-            role: "user",
-          },
-        ],
-        chatbotId: "wVBzSogkMNl7a3jA_QwUu",
-      };
-
-      console.log("📤 API Request Payload:", JSON.stringify(requestPayload, null, 2));
-      console.log("🌐 API Endpoint:", "https://www.chatbase.co/api/v1/chat");
-      console.log("🔑 Using Authorization: Bearer 2ab89480-****-****-****-************");
-
-      setLoadingMessage("Contacting AI agent...");
-      
-      // Call Chatbase API
-      const startTime = performance.now();
-      const response = await fetch("https://www.chatbase.co/api/v1/chat", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer 2ab89480-00e4-46cc-9e5c-051b28980905",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestPayload),
-      });
-      const endTime = performance.now();
-      
-      setLoadingMessage("AI analyzing eligibility criteria...");
-
-      console.log(`⏱️  API Response Time: ${(endTime - startTime).toFixed(2)}ms`);
-      console.log("📥 API Response Status:", response.status, response.statusText);
-      console.log("📋 Response Headers:", Object.fromEntries(response.headers.entries()));
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ API Error Response Body:", errorText);
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log("📥 Raw API Response Data:", JSON.stringify(data, null, 2));
-      
-      setLoadingMessage("Processing evaluation results...");
-      
-      // Extract the content from the response
-      let evaluationResult;
-      if (data.text) {
-        console.log("📄 AI Response Text (before cleaning):", data.text);
+      let evaluationData;
+      try {
+        // First attempt
+        evaluationData = await callAIEvaluation(horseData, false);
+        setRetryCount(0); // Reset retry count on success
+      } catch (parseError) {
+        console.warn("⚠️ First attempt failed:", parseError);
         
-        // Try to parse the text as JSON
-        try {
-          // Remove markdown code blocks if present
-          let cleanedText = data.text;
-          if (cleanedText.includes("```json")) {
-            console.log("🧹 Removing ```json markdown blocks...");
-            cleanedText = cleanedText.replace(/```json\n?/g, "").replace(/```\n?/g, "");
-          } else if (cleanedText.includes("```")) {
-            console.log("🧹 Removing ``` markdown blocks...");
-            cleanedText = cleanedText.replace(/```\n?/g, "");
+        // Check if this is a JSON parsing error
+        const errorMessage = (parseError as Error).message || "";
+        const isParsingError = errorMessage.includes("Failed to parse AI response as JSON") || 
+                              errorMessage.includes("Unexpected token") ||
+                              errorMessage.includes("JSON");
+        
+        if (isParsingError && retryCount < 1) {
+          console.log("🔄 Attempting retry due to parsing error...");
+          setRetryCount(1);
+          
+          // Wait a brief moment before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          try {
+            // Second attempt
+            evaluationData = await callAIEvaluation(horseData, true);
+            console.log("✅ Retry successful!");
+            setRetryCount(0); // Reset retry count on success
+          } catch (retryError) {
+            console.error("❌ Retry also failed:", retryError);
+            setRetryCount(0); // Reset retry count
+            
+            // Show user-friendly error with ChatBot recommendation
+            throw new Error(
+              "We're having trouble processing the AI response. This sometimes happens due to formatting issues.\n\n" +
+              "💡 Try using the ChatBot for a conversational evaluation instead. Click the chat icon in the bottom right corner to get started!"
+            );
           }
-          
-          // Try to find JSON in the text if it contains other content
-          const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            console.log("🔍 Found JSON object in response, extracting...");
-            cleanedText = jsonMatch[0];
-          }
-          
-          // Remove trailing commas before closing braces/brackets (invalid JSON)
-          console.log("🧹 Removing trailing commas...");
-          cleanedText = cleanedText.replace(/,(\s*[}\]])/g, '$1');
-          
-          // Check if the text is a JSON string (wrapped in quotes with escaped content)
-          if (cleanedText.startsWith('"') && cleanedText.endsWith('"')) {
-            console.log("🧹 Detected JSON string, parsing twice...");
-            cleanedText = JSON.parse(cleanedText); // First parse to get the actual JSON string
-          }
-          
-          console.log("📄 Cleaned Text (ready to parse):", cleanedText);
-          evaluationResult = JSON.parse(cleanedText.trim());
-          console.log("✅ Successfully Parsed Evaluation Result:", JSON.stringify(evaluationResult, null, 2));
-        } catch (parseError) {
-          console.error("❌ Parse Error:", parseError);
-          console.error("❌ Failed to parse text:", data.text);
-          console.error("❌ Text length:", data.text.length);
-          console.error("❌ First 500 characters:", data.text.substring(0, 500));
-          
-          // Show a more helpful error message with preview
-          const preview = data.text.length > 200 ? data.text.substring(0, 200) + "..." : data.text;
-          throw new Error(
-            `Failed to parse AI response as JSON. The AI returned:\n\n"${preview}"\n\nCheck the console for the full response.`
-          );
+        } else {
+          // Not a parsing error or already retried, throw the original error
+          throw parseError;
         }
-      } else {
-        console.error("❌ Unexpected response format - no 'text' field found");
-        console.error("❌ Available fields:", Object.keys(data));
-        throw new Error("Unexpected API response format");
       }
 
       console.log("🎉 Evaluation Complete!");
@@ -489,9 +542,9 @@ Respond with valid JSON only.`,
       
       // Store debug data for modal
       setDebugData({
-        request: requestPayload,
-        response: data,
-        responseTime: endTime - startTime,
+        request: evaluationData.requestPayload,
+        response: evaluationData.data,
+        responseTime: evaluationData.responseTime,
       });
       
       // Small delay to show 100% completion before closing modal
@@ -499,13 +552,14 @@ Respond with valid JSON only.`,
       
       // Store the submitted form data alongside the result
       setSubmittedFormData(formData);
-      setResult(evaluationResult);
+      setResult(evaluationData.evaluationResult);
     } catch (err) {
       console.error("❌ Submission Error:", err);
       console.groupEnd();
       setError((err as Error).message || "An error occurred while evaluating eligibility");
     } finally {
       setLoading(false);
+      setRetryCount(0); // Always reset retry count when done
     }
   }
 
@@ -877,12 +931,40 @@ ${Object.entries(result.coverage_eligibility.eligible_coverages)
 
               {/* Error Display */}
               {error && (
-                <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md text-red-800 text-sm">
-                  <XCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium mb-1">Error</div>
-                    <div className="whitespace-pre-wrap break-words">{error}</div>
+                <div className={cx(
+                  "flex flex-col gap-3 p-4 rounded-md text-sm",
+                  error.includes("ChatBot") 
+                    ? "bg-blue-50 border border-blue-200 text-blue-900" 
+                    : "bg-red-50 border border-red-200 text-red-800"
+                )}>
+                  <div className="flex items-start gap-2">
+                    {error.includes("ChatBot") ? (
+                      <Info className="h-5 w-5 mt-0.5 flex-shrink-0 text-blue-600" />
+                    ) : (
+                      <XCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium mb-1">
+                        {error.includes("ChatBot") ? "Alternative Available" : "Error"}
+                      </div>
+                      <div className="whitespace-pre-wrap break-words">{error}</div>
+                    </div>
                   </div>
+                  {error.includes("ChatBot") && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        // Open Chatbase widget
+                        if (window.chatbase) {
+                          window.chatbase('open');
+                        }
+                      }}
+                      className="gap-2 w-full sm:w-auto bg-white hover:bg-blue-50 border-blue-300 text-blue-700"
+                    >
+                      💬 Open ChatBot
+                    </Button>
+                  )}
                 </div>
               )}
 
