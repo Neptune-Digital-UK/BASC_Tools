@@ -241,7 +241,6 @@ export default function EligibilityEvaluator() {
   } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [urlParamsProcessed, setUrlParamsProcessed] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   
   const searchParams = useSearchParams();
   const autoSubmitTriggered = useRef(false);
@@ -273,7 +272,7 @@ export default function EligibilityEvaluator() {
     }
   }, [loading]);
 
-  // Parse URL parameters and auto-submit if valid
+  // Parse URL parameters and auto-submit (no validation)
   useEffect(() => {
     if (urlParamsProcessed || autoSubmitTriggered.current) return;
 
@@ -286,27 +285,17 @@ export default function EligibilityEvaluator() {
     // Pre-fill form with URL data
     setFormData(urlData);
 
-    // Validate the data
-    const errors = validateURLFormData(urlData);
+    // Auto-trigger evaluation without validation
+    setUrlParamsProcessed(true);
+    autoSubmitTriggered.current = true;
     
-    if (errors.length > 0) {
-      // Show validation errors
-      setValidationErrors(errors);
-      setUrlParamsProcessed(true);
-    } else {
-      // Valid data - auto-trigger evaluation
-      setValidationErrors([]);
-      setUrlParamsProcessed(true);
-      autoSubmitTriggered.current = true;
-      
-      // Trigger submission after state updates
-      setTimeout(() => {
-        const form = document.querySelector('form');
-        if (form) {
-          form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        }
-      }, 100);
-    }
+    // Trigger submission after state updates
+    setTimeout(() => {
+      const form = document.querySelector('form');
+      if (form) {
+        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      }
+    }, 100);
   }, [searchParams, urlParamsProcessed]);
 
   function formatCurrency(value: string): string {
@@ -640,51 +629,6 @@ ${Object.entries(result.coverage_eligibility.eligible_coverages)
     };
   }
 
-  function validateURLFormData(data: FormData): string[] {
-    const errors: string[] = [];
-
-    // Check required fields
-    if (!data.horseName) errors.push('Horse Name is required');
-    if (!data.age) errors.push('Age is required');
-    if (!data.sex) errors.push('Sex is required');
-    if (!data.breed) errors.push('Breed is required');
-    if (!data.use) errors.push('Use/Activity is required');
-    if (!data.sumInsured) errors.push('Sum Insured is required');
-
-    // Validate age
-    if (data.age) {
-      const ageNum = parseInt(data.age);
-      if (isNaN(ageNum) || ageNum < 0 || ageNum > 40) {
-        errors.push('Age must be a number between 0 and 40');
-      }
-    }
-
-    // Validate sex
-    if (data.sex && !SEX_OPTIONS.some(opt => opt.value === data.sex)) {
-      errors.push(`Invalid Sex value: "${data.sex}"`);
-    }
-
-    // Validate breed
-    if (data.breed && !BREED_OPTIONS.some(opt => opt.value === data.breed)) {
-      errors.push(`Invalid Breed value: "${data.breed}"`);
-    }
-
-    // Validate use
-    if (data.use && !USE_OPTIONS.some(opt => opt.value === data.use)) {
-      errors.push(`Invalid Use/Activity value: "${data.use}"`);
-    }
-
-    // Validate sum insured (must be valid number when stripped)
-    if (data.sumInsured) {
-      const stripped = data.sumInsured.replace(/[^0-9.]/g, '');
-      if (!stripped || isNaN(parseFloat(stripped))) {
-        errors.push('Sum Insured must be a valid number');
-      }
-    }
-
-    return errors;
-  }
-
   return (
     <>
       <ToolNavigation toolName="Eligibility Evaluator" />
@@ -695,27 +639,6 @@ ${Object.entries(result.coverage_eligibility.eligible_coverages)
             Enter horse details to get an instant AI-powered eligibility evaluation for insurance coverage.
           </p>
         </header>
-
-        {/* Validation Errors from URL Parameters */}
-        {validationErrors.length > 0 && !result && (
-          <div className="flex items-start gap-3 p-4 bg-amber-50 border-2 border-amber-200 rounded-lg text-amber-900">
-            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold mb-2">Invalid URL Parameters</div>
-              <ul className="space-y-1 text-sm">
-                {validationErrors.map((error, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="text-amber-600">•</span>
-                    <span>{error}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="text-sm mt-2 text-amber-700">
-                Please correct the errors below and submit the form manually.
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* Loading Modal - Drawer on mobile, Dialog on desktop */}
         {isMobile ? (

@@ -11,29 +11,18 @@ The Eligibility Evaluator now supports pre-filled links with automatic evaluatio
 - Parses all form fields from URL query parameters
 - Automatically formats currency values (adds $ and commas)
 
-### 2. **Validation System**
-- Validates all required fields are present
-- Checks age is within valid range (0-40 years)
-- Verifies sex/breed/use values match available options
-- Validates sum insured is a valid number
-
-### 3. **Auto-Trigger Evaluation**
-- Automatically submits form when all data is valid
+### 2. **Auto-Trigger Evaluation**
+- Automatically submits form when URL parameters are present
 - Triggers evaluation within 100ms of page load
 - Uses ref to prevent duplicate submissions
 - Maintains existing manual submission workflow
+- **No frontend validation** - trusts URL data and lets AI handle validation
 
-### 4. **Error Display**
-- Shows amber warning banner for invalid data
-- Lists all validation errors clearly
-- Allows manual correction and re-submission
-- Doesn't interfere with normal form operation
-
-### 5. **User Experience**
-- Seamless auto-evaluation for valid URLs
-- Clear error messages for invalid data
-- Form pre-fills even when errors exist
+### 3. **User Experience**
+- Seamless auto-evaluation for any URL with parameters
+- Form pre-fills with provided data
 - "New" button resets for new evaluations
+- If AI encounters invalid data, error will be shown in results
 
 ## Files Modified
 
@@ -42,13 +31,11 @@ The Eligibility Evaluator now supports pre-filled links with automatic evaluatio
 
 **Changes:**
 - Added imports: `useSearchParams`, `useRef`
-- Added state: `urlParamsProcessed`, `validationErrors`
+- Added state: `urlParamsProcessed`
 - Added hook: `searchParams`, `autoSubmitTriggered` ref
 - Added functions:
-  - `parseURLParams()` - Extracts URL parameters
-  - `validateURLFormData()` - Validates form data
+  - `parseURLParams()` - Extracts and formats URL parameters
 - Added useEffect: URL parsing and auto-submission logic
-- Added JSX: Validation error banner component
 
 ### Documentation Added
 1. **URL_PARAMETER_TESTING.md** - 12 test scenarios with expected behaviors
@@ -66,26 +53,26 @@ The Eligibility Evaluator now supports pre-filled links with automatic evaluatio
    ↓
 4. Form state updates with URL data
    ↓
-5. validateURLFormData() checks data
+5. Auto-submit form immediately (no validation)
    ↓
-6a. IF VALID:                    6b. IF INVALID:
-    → Auto-submit form                → Show error banner
-    → Trigger evaluation              → Allow manual correction
-    → Display results                 → User submits manually
+6. Trigger AI evaluation
+   ↓
+7. Display results (or error if AI rejects data)
 ```
 
 ## Example URLs
 
-### ✅ Valid URL (Auto-Evaluates)
+### Complete Data URL
 ```
 http://localhost:3000/tools/eligibility-evaluator?horseName=Thunder&age=8&sex=Gelding&breed=Thoroughbred&use=Dressage&sumInsured=75000
 ```
+*Auto-evaluates immediately when page loads*
 
-### ❌ Invalid URL (Shows Errors)
+### Partial Data URL
 ```
-http://localhost:3000/tools/eligibility-evaluator?horseName=Thunder&age=45&sex=Unknown
+http://localhost:3000/tools/eligibility-evaluator?horseName=Thunder&age=8
 ```
-*Errors: Age out of range, Invalid sex value, Missing required fields*
+*Auto-submits with partial data - AI will handle missing/invalid fields*
 
 ### Production URL Format
 ```
@@ -94,27 +81,28 @@ https://toolkit.basculeuw.com/tools/eligibility-evaluator?horseName=Thunder&age=
 
 ## URL Parameters Reference
 
-| Parameter | Required | Type | Example |
-|-----------|----------|------|---------|
-| `horseName` | ✅ | string | `Thunder` |
-| `age` | ✅ | number | `8` |
-| `sex` | ✅ | string | `Gelding`, `Mare`, `Stallion`, `Colt`, `Filly` |
-| `breed` | ✅ | string | `Thoroughbred`, `Quarter Horse`, etc. |
-| `use` | ✅ | string | `Dressage`, `Trail Riding`, etc. |
-| `sumInsured` | ✅ | number | `75000` |
-| `purchasePrice` | ❌ | number | `65000` |
+| Parameter | Type | Example |
+|-----------|------|---------|
+| `horseName` | string | `Thunder` |
+| `age` | number | `8` |
+| `sex` | string | `Gelding`, `Mare`, `Stallion`, `Colt`, `Filly` |
+| `breed` | string | `Thoroughbred`, `Quarter Horse`, etc. |
+| `use` | string | `Dressage`, `Trail Riding`, etc. |
+| `sumInsured` | number | `75000` |
+| `purchasePrice` | number | `65000` |
+
+**Note:** All fields are optional at the URL level. The AI agent will handle validation and provide appropriate error messages if data is missing or invalid.
 
 ## Testing Checklist
 
 - ✅ URL parsing implemented
-- ✅ Validation logic implemented
-- ✅ Auto-submission implemented
-- ✅ Error banner implemented
+- ✅ Auto-submission implemented (no validation)
 - ✅ Currency formatting works
 - ✅ Form pre-filling works
 - ✅ No linter errors
 - ✅ Documentation created
 - ✅ Code examples provided
+- ✅ AI handles all data validation
 
 ## Integration Examples
 
@@ -148,8 +136,8 @@ def build_url(data):
 1. **Shareable Links** - Send pre-filled evaluation links via email or messaging
 2. **Integration Ready** - Easy to integrate with other systems and workflows
 3. **Time Saving** - Recipients don't need to manually enter data
-4. **Error Prevention** - Validation ensures data quality
-5. **User Friendly** - Clear errors guide users to correct issues
+4. **Flexible** - Accepts any data format, AI handles validation
+5. **User Friendly** - Auto-evaluates immediately with no manual interaction
 6. **Bookmarkable** - Save common evaluations for quick access
 
 ## Technical Notes
@@ -157,9 +145,10 @@ def build_url(data):
 - Uses Next.js `useSearchParams` for client-side URL parsing
 - Implements React refs to prevent duplicate auto-submissions
 - Currency formatting handles various input formats
-- Validation matches existing form validation logic
+- **No frontend validation** - trusts URL data and delegates validation to AI
 - No breaking changes to existing functionality
 - Backward compatible (works with and without URL params)
+- AI agent provides detailed error messages if data is invalid
 
 ## Next Steps for Users
 
@@ -188,13 +177,13 @@ def build_url(data):
 ### Common Issues
 
 **Issue:** Auto-evaluation doesn't trigger
-- **Fix:** Check all required fields are present and valid
+- **Fix:** Ensure at least one URL parameter is present
 
 **Issue:** Values not pre-filling correctly
 - **Fix:** Ensure URL encoding for special characters and spaces
 
-**Issue:** Validation errors showing incorrectly
-- **Fix:** Verify values match exact option values (case-sensitive)
+**Issue:** AI returns error about missing/invalid data
+- **Fix:** Check the AI error message and provide complete/valid data in URL
 
 ### Future Enhancements (Optional)
 
