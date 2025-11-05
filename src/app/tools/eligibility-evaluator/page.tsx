@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -239,6 +240,11 @@ export default function EligibilityEvaluator() {
     responseTime: number;
   } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [urlParamsProcessed, setUrlParamsProcessed] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  
+  const searchParams = useSearchParams();
+  const autoSubmitTriggered = useRef(false);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -266,6 +272,42 @@ export default function EligibilityEvaluator() {
       setProgress(0);
     }
   }, [loading]);
+
+  // Parse URL parameters and auto-submit if valid
+  useEffect(() => {
+    if (urlParamsProcessed || autoSubmitTriggered.current) return;
+
+    const urlData = parseURLParams();
+    if (!urlData) {
+      setUrlParamsProcessed(true);
+      return;
+    }
+
+    // Pre-fill form with URL data
+    setFormData(urlData);
+
+    // Validate the data
+    const errors = validateURLFormData(urlData);
+    
+    if (errors.length > 0) {
+      // Show validation errors
+      setValidationErrors(errors);
+      setUrlParamsProcessed(true);
+    } else {
+      // Valid data - auto-trigger evaluation
+      setValidationErrors([]);
+      setUrlParamsProcessed(true);
+      autoSubmitTriggered.current = true;
+      
+      // Trigger submission after state updates
+      setTimeout(() => {
+        const form = document.querySelector('form');
+        if (form) {
+          form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        }
+      }, 100);
+    }
+  }, [searchParams, urlParamsProcessed]);
 
   function formatCurrency(value: string): string {
     // Remove all non-numeric characters except decimal point
@@ -569,6 +611,80 @@ ${Object.entries(result.coverage_eligibility.eligible_coverages)
     window.location.href = mailtoLink;
   }
 
+  function parseURLParams(): FormData | null {
+    // Check if any URL parameters are present
+    const hasParams = Array.from(searchParams.keys()).length > 0;
+    if (!hasParams) return null;
+
+    // Parse parameters from URL
+    const horseName = searchParams.get('horseName') || '';
+    const age = searchParams.get('age') || '';
+    const sex = searchParams.get('sex') || '';
+    const breed = searchParams.get('breed') || '';
+    const use = searchParams.get('use') || '';
+    const purchasePrice = searchParams.get('purchasePrice') || '';
+    const sumInsured = searchParams.get('sumInsured') || '';
+
+    // Format currency fields if they have values
+    const formattedPurchasePrice = purchasePrice ? formatCurrency(purchasePrice) : '';
+    const formattedSumInsured = sumInsured ? formatCurrency(sumInsured) : '';
+
+    return {
+      horseName,
+      age,
+      sex,
+      breed,
+      use,
+      purchasePrice: formattedPurchasePrice,
+      sumInsured: formattedSumInsured,
+    };
+  }
+
+  function validateURLFormData(data: FormData): string[] {
+    const errors: string[] = [];
+
+    // Check required fields
+    if (!data.horseName) errors.push('Horse Name is required');
+    if (!data.age) errors.push('Age is required');
+    if (!data.sex) errors.push('Sex is required');
+    if (!data.breed) errors.push('Breed is required');
+    if (!data.use) errors.push('Use/Activity is required');
+    if (!data.sumInsured) errors.push('Sum Insured is required');
+
+    // Validate age
+    if (data.age) {
+      const ageNum = parseInt(data.age);
+      if (isNaN(ageNum) || ageNum < 0 || ageNum > 40) {
+        errors.push('Age must be a number between 0 and 40');
+      }
+    }
+
+    // Validate sex
+    if (data.sex && !SEX_OPTIONS.some(opt => opt.value === data.sex)) {
+      errors.push(`Invalid Sex value: "${data.sex}"`);
+    }
+
+    // Validate breed
+    if (data.breed && !BREED_OPTIONS.some(opt => opt.value === data.breed)) {
+      errors.push(`Invalid Breed value: "${data.breed}"`);
+    }
+
+    // Validate use
+    if (data.use && !USE_OPTIONS.some(opt => opt.value === data.use)) {
+      errors.push(`Invalid Use/Activity value: "${data.use}"`);
+    }
+
+    // Validate sum insured (must be valid number when stripped)
+    if (data.sumInsured) {
+      const stripped = data.sumInsured.replace(/[^0-9.]/g, '');
+      if (!stripped || isNaN(parseFloat(stripped))) {
+        errors.push('Sum Insured must be a valid number');
+      }
+    }
+
+    return errors;
+  }
+
   return (
     <>
       <ToolNavigation toolName="Eligibility Evaluator" />
@@ -579,6 +695,27 @@ ${Object.entries(result.coverage_eligibility.eligible_coverages)
             Enter horse details to get an instant AI-powered eligibility evaluation for insurance coverage.
           </p>
         </header>
+
+        {/* Validation Errors from URL Parameters */}
+        {validationErrors.length > 0 && !result && (
+          <div className="flex items-start gap-3 p-4 bg-amber-50 border-2 border-amber-200 rounded-lg text-amber-900">
+            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold mb-2">Invalid URL Parameters</div>
+              <ul className="space-y-1 text-sm">
+                {validationErrors.map((error, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-amber-600">•</span>
+                    <span>{error}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-sm mt-2 text-amber-700">
+                Please correct the errors below and submit the form manually.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Loading Modal - Drawer on mobile, Dialog on desktop */}
         {isMobile ? (
