@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Calculator, ArrowRight, Users, FileText, Shield, Sparkles, AlertTriangle } from 'lucide-react'
+import { Calculator, ArrowRight, Users, FileText, Shield, Sparkles, AlertTriangle, Database } from 'lucide-react'
 
 export default function Home() {
   const [showDisclaimer, setShowDisclaimer] = useState(false)
@@ -145,6 +145,41 @@ export default function Home() {
                     </ul>
                   </div>
                   <Link href="/tools/equine-risk-selector">
+                    <Button className="w-full group mt-8">
+                      Launch Tool
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Insurance Plan Explorer Tool */}
+            <Card className="hover:shadow-lg transition-shadow duration-200 shadow-sm">
+              <CardHeader>
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="p-2 bg-indigo-100 rounded-lg">
+                    <Database className="h-6 w-6 text-indigo-600" />
+                  </div>
+                  <CardTitle className="text-lg">Insurance Plan Explorer</CardTitle>
+                </div>
+                <CardDescription>
+                  Search and compare all available insurance plans with detailed coverage information, eligibility requirements, and exclusions.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-8">
+                  <div className="text-sm text-gray-600">
+                    <strong>Features:</strong>
+                    <ul className="mt-1 ml-4 list-disc">
+                      <li>Comprehensive plan database</li>
+                      <li>Advanced search & filtering</li>
+                      <li>Side-by-side comparison</li>
+                      <li>Coverage limits & exclusions</li>
+                      <li>State availability lookup</li>
+                    </ul>
+                  </div>
+                  <Link href="/tools/insurance-explorer">
                     <Button className="w-full group mt-8">
                       Launch Tool
                       <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />

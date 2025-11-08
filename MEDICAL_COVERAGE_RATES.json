@@ -1,0 +1,741 @@
+{
+  "medicalCoverageRates": {
+    "lastUpdated": "2025-11-06",
+    "currency": "USD",
+    "coverageTypes": [
+      {
+        "id": "classic-major-medical",
+        "name": "Classic Major Medical",
+        "description": "Comprehensive medical coverage for horses with standard deductibles and co-pay options",
+        "underwritingPlatform": "Standard",
+        "eligibility": {
+          "minimumValue": 20000,
+          "specialRules": [
+            "0% co-pay option requires horse value of $100,000 or more",
+            "20% co-pay option available for horses $20,000 and over"
+          ],
+          "disciplines": ["All"],
+          "raceHorseEligible": true
+        },
+        "options": [
+          {
+            "optionGroup": "With 20% Co-Pay",
+            "minimumHorseValue": 20000,
+            "coPay": 20,
+            "rates": [
+              {
+                "deductible": 500,
+                "coPayPercentage": 20,
+                "limit": 7500,
+                "premium": 500
+              },
+              {
+                "deductible": 500,
+                "coPayPercentage": 20,
+                "limit": 10000,
+                "premium": 550
+              },
+              {
+                "deductible": 500,
+                "coPayPercentage": 20,
+                "limit": 12500,
+                "premium": 675
+              },
+              {
+                "deductible": 500,
+                "coPayPercentage": 20,
+                "limit": 15000,
+                "premium": 750
+              },
+              {
+                "deductible": 1000,
+                "coPayPercentage": 20,
+                "limit": 7500,
+                "premium": 440
+              },
+              {
+                "deductible": 1000,
+                "coPayPercentage": 20,
+                "limit": 10000,
+                "premium": 460
+              },
+              {
+                "deductible": 1000,
+                "coPayPercentage": 20,
+                "limit": 12500,
+                "premium": 560
+              },
+              {
+                "deductible": 1000,
+                "coPayPercentage": 20,
+                "limit": 15000,
+                "premium": 620
+              }
+            ]
+          },
+          {
+            "optionGroup": "With 0% Co-Pay",
+            "minimumHorseValue": 100000,
+            "coPay": 0,
+            "specialRequirement": "Available ONLY for horses insured for $100,000 and over",
+            "rates": [
+              {
+                "deductible": 500,
+                "coPayPercentage": 0,
+                "limit": 7500,
+                "premium": 700
+              },
+              {
+                "deductible": 500,
+                "coPayPercentage": 0,
+                "limit": 10000,
+                "premium": 750
+              },
+              {
+                "deductible": 500,
+                "coPayPercentage": 0,
+                "limit": 12500,
+                "premium": 875
+              },
+              {
+                "deductible": 500,
+                "coPayPercentage": 0,
+                "limit": 15000,
+                "premium": 950
+              },
+              {
+                "deductible": 1000,
+                "coPayPercentage": 0,
+                "limit": 7500,
+                "premium": 640
+              },
+              {
+                "deductible": 1000,
+                "coPayPercentage": 0,
+                "limit": 10000,
+                "premium": 660
+              },
+              {
+                "deductible": 1000,
+                "coPayPercentage": 0,
+                "limit": 12500,
+                "premium": 760
+              },
+              {
+                "deductible": 1000,
+                "coPayPercentage": 0,
+                "limit": 15000,
+                "premium": 820
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "basic-major-medical",
+        "name": "Basic Major Medical",
+        "description": "Simplified medical coverage with zero co-pay, available only through Accelerant",
+        "underwritingPlatform": "Accelerant Only",
+        "eligibility": {
+          "minimumValue": 20000,
+          "specialRules": [
+            "Available ONLY through Accelerant underwriting",
+            "Available for Sport Horse or Western disciplines only"
+          ],
+          "disciplines": ["Sport Horse", "Western"],
+          "raceHorseEligible": false
+        },
+        "options": [
+          {
+            "optionGroup": "Sport Horse",
+            "discipline": "Sport Horse",
+            "minimumHorseValue": 20000,
+            "coPay": 0,
+            "rates": [
+              {
+                "deductible": 425,
+                "coPayPercentage": 0,
+                "limit": 7500,
+                "premium": 575
+              },
+              {
+                "deductible": 500,
+                "coPayPercentage": 0,
+                "limit": 10000,
+                "premium": 675
+              },
+              {
+                "deductible": 600,
+                "coPayPercentage": 0,
+                "limit": 15000,
+                "premium": 825
+              }
+            ]
+          },
+          {
+            "optionGroup": "Western",
+            "discipline": "Western",
+            "minimumHorseValue": 20000,
+            "coPay": 0,
+            "rates": [
+              {
+                "deductible": 425,
+                "coPayPercentage": 0,
+                "limit": 7500,
+                "premium": 525
+              },
+              {
+                "deductible": 500,
+                "coPayPercentage": 0,
+                "limit": 10000,
+                "premium": 625
+              },
+              {
+                "deductible": 600,
+                "coPayPercentage": 0,
+                "limit": 15000,
+                "premium": 775
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "special-major-medical",
+        "name": "Special Major Medical",
+        "description": "Enhanced medical coverage with zero co-pay, available only through Accelerant",
+        "underwritingPlatform": "Accelerant Only",
+        "eligibility": {
+          "minimumValue": 20000,
+          "specialRules": [
+            "Available ONLY through Accelerant underwriting",
+            "Available for Sport Horse or Western disciplines only"
+          ],
+          "disciplines": ["Sport Horse", "Western"],
+          "raceHorseEligible": false
+        },
+        "options": [
+          {
+            "optionGroup": "Sport Horse",
+            "discipline": "Sport Horse",
+            "minimumHorseValue": 20000,
+            "coPay": 0,
+            "rates": [
+              {
+                "deductible": 425,
+                "coPayPercentage": 0,
+                "limit": 7500,
+                "premium": 575
+              },
+              {
+                "deductible": 500,
+                "coPayPercentage": 0,
+                "limit": 10000,
+                "premium": 675
+              },
+              {
+                "deductible": 600,
+                "coPayPercentage": 0,
+                "limit": 15000,
+                "premium": 825
+              }
+            ]
+          },
+          {
+            "optionGroup": "Western",
+            "discipline": "Western",
+            "minimumHorseValue": 20000,
+            "coPay": 0,
+            "rates": [
+              {
+                "deductible": 425,
+                "coPayPercentage": 0,
+                "limit": 7500,
+                "premium": 525
+              },
+              {
+                "deductible": 500,
+                "coPayPercentage": 0,
+                "limit": 10000,
+                "premium": 625
+              },
+              {
+                "deductible": 600,
+                "coPayPercentage": 0,
+                "limit": 15000,
+                "premium": 775
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "external-accident-major-medical",
+        "name": "External Accident Major Medical",
+        "description": "Coverage limited to injuries from external accidents only, available only through Accelerant",
+        "underwritingPlatform": "Accelerant Only",
+        "eligibility": {
+          "minimumValue": 0,
+          "specialRules": [
+            "Available for horses of ANY value",
+            "Available ONLY through Accelerant underwriting",
+            "Available for Sport Horse or Western disciplines only"
+          ],
+          "disciplines": ["Sport Horse", "Western"],
+          "raceHorseEligible": false
+        },
+        "options": [
+          {
+            "optionGroup": "Sport Horse",
+            "discipline": "Sport Horse",
+            "minimumHorseValue": 0,
+            "coPay": 0,
+            "rates": [
+              {
+                "deductible": 375,
+                "coPayPercentage": 0,
+                "limit": 5000,
+                "premium": 525
+              }
+            ]
+          },
+          {
+            "optionGroup": "Western",
+            "discipline": "Western",
+            "minimumHorseValue": 0,
+            "coPay": 0,
+            "rates": [
+              {
+                "deductible": 375,
+                "coPayPercentage": 0,
+                "limit": 5000,
+                "premium": 475
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "medical-assistance",
+        "name": "Medical Assistance",
+        "description": "Basic medical support coverage with limited benefits",
+        "underwritingPlatform": "Standard",
+        "eligibility": {
+          "minimumValue": 0,
+          "specialRules": [
+            "Different rate structures for horses under $20,000 vs. $20,000 and over"
+          ],
+          "disciplines": ["All"],
+          "raceHorseEligible": true
+        },
+        "options": [
+          {
+            "optionGroup": "Under $20,000",
+            "minimumHorseValue": 0,
+            "maximumHorseValue": 19999,
+            "coPay": 20,
+            "rates": [
+              {
+                "deductible": 1000,
+                "coPayPercentage": 20,
+                "limit": 7500,
+                "premium": 650
+              }
+            ]
+          },
+          {
+            "optionGroup": "$20,000 and Over",
+            "minimumHorseValue": 20000,
+            "coPay": 20,
+            "rates": [
+              {
+                "deductible": 500,
+                "coPayPercentage": 20,
+                "limit": 7500,
+                "premium": 400
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "emergency-colic-surgery",
+        "name": "Emergency Colic Surgery",
+        "description": "Specific coverage for emergency colic-related surgical procedures",
+        "underwritingPlatform": "Standard",
+        "eligibility": {
+          "minimumValue": 0,
+          "specialRules": [
+            "Available for horses of ANY value",
+            "Premium rates determined on case-by-case basis"
+          ],
+          "disciplines": ["All"],
+          "raceHorseEligible": true
+        },
+        "options": [
+          {
+            "optionGroup": "Standard",
+            "minimumHorseValue": 0,
+            "coPay": 0,
+            "rates": [
+              {
+                "deductible": 0,
+                "coPayPercentage": 0,
+                "limit": 5000,
+                "premium": null,
+                "premiumNote": "Quoted individually - not standardized"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "colic-treatment",
+        "name": "Colic Treatment",
+        "description": "Coverage for non-surgical colic treatment",
+        "underwritingPlatform": "Standard",
+        "eligibility": {
+          "minimumValue": 15000,
+          "specialRules": [
+            "Horse must be insured for $15,000 and over"
+          ],
+          "disciplines": ["All"],
+          "raceHorseEligible": true
+        },
+        "options": [
+          {
+            "optionGroup": "Standard",
+            "minimumHorseValue": 15000,
+            "coPay": 20,
+            "rates": [
+              {
+                "deductible": 250,
+                "coPayPercentage": 20,
+                "limit": 5000,
+                "premium": 175
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "surgical",
+        "name": "Surgical",
+        "description": "Coverage for surgical procedures with multiple limit options",
+        "underwritingPlatform": "Standard",
+        "eligibility": {
+          "minimumValue": 0,
+          "specialRules": [
+            "Race Horses are INELIGIBLE for standard surgical coverage",
+            "Race Horses must use specialized Race Horse Surgical coverage"
+          ],
+          "disciplines": ["All except Race Horses"],
+          "raceHorseEligible": false
+        },
+        "options": [
+          {
+            "optionGroup": "Standard Surgical",
+            "minimumHorseValue": 0,
+            "coPay": 20,
+            "specialRequirement": "Race Horses INELIGIBLE",
+            "rates": [
+              {
+                "deductible": 250,
+                "coPayPercentage": 20,
+                "limit": 5000,
+                "premium": 100
+              },
+              {
+                "deductible": 250,
+                "coPayPercentage": 20,
+                "limit": 10000,
+                "premium": 150
+              },
+              {
+                "deductible": 250,
+                "coPayPercentage": 20,
+                "limit": 15000,
+                "premium": 200
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "zero-deductible-surgical",
+        "name": "Zero Deductible Surgical",
+        "description": "Surgical coverage with zero deductible and zero co-pay, available only through Accelerant",
+        "underwritingPlatform": "Accelerant Only",
+        "eligibility": {
+          "minimumValue": 0,
+          "specialRules": [
+            "Available ONLY through Accelerant underwriting",
+            "Zero deductible and zero co-pay"
+          ],
+          "disciplines": ["All"],
+          "raceHorseEligible": false
+        },
+        "options": [
+          {
+            "optionGroup": "Zero Deductible",
+            "minimumHorseValue": 0,
+            "coPay": 0,
+            "rates": [
+              {
+                "deductible": 0,
+                "coPayPercentage": 0,
+                "limit": 5000,
+                "premium": 100
+              },
+              {
+                "deductible": 0,
+                "coPayPercentage": 0,
+                "limit": 10000,
+                "premium": 200
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "race-horse-surgical-standard",
+        "name": "Race Horse Only Standard Surgical",
+        "description": "Standard surgical coverage designed specifically for Race Horses",
+        "underwritingPlatform": "Standard",
+        "eligibility": {
+          "minimumValue": 0,
+          "specialRules": [
+            "Available ONLY for Race Horses"
+          ],
+          "disciplines": ["Race Horse Only"],
+          "raceHorseEligible": true,
+          "raceHorseExclusive": true
+        },
+        "options": [
+          {
+            "optionGroup": "Race Horse Standard",
+            "minimumHorseValue": 0,
+            "coPay": 20,
+            "rates": [
+              {
+                "deductible": 250,
+                "coPayPercentage": 20,
+                "limit": 5000,
+                "premium": 200
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "race-horse-surgical-accelerant",
+        "name": "Race Horse Surgical (Accelerant)",
+        "description": "Surgical coverage for Race Horses, available only through Accelerant",
+        "underwritingPlatform": "Accelerant Only",
+        "eligibility": {
+          "minimumValue": 0,
+          "specialRules": [
+            "Available ONLY through Accelerant underwriting",
+            "Available ONLY for Race Horses"
+          ],
+          "disciplines": ["Race Horse Only"],
+          "raceHorseEligible": true,
+          "raceHorseExclusive": true
+        },
+        "options": [
+          {
+            "optionGroup": "Race Horse Accelerant",
+            "minimumHorseValue": 0,
+            "coPay": 20,
+            "rates": [
+              {
+                "deductible": 250,
+                "coPayPercentage": 20,
+                "limit": 5000,
+                "premium": 200
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "definitions": {
+      "sumInsured": "The total value for which the horse is insured",
+      "deductible": "The amount the policyholder pays before insurance coverage begins",
+      "coPay": "The percentage of costs the policyholder pays after the deductible is met",
+      "limit": "The maximum amount the policy will pay for covered services",
+      "premium": "The cost of the insurance coverage (annual payment)",
+      "sportHorse": "Horses used for show jumping, dressage, eventing, and other competitive sports",
+      "western": "Horses used for western disciplines (reining, cutting, barrel racing, etc.)",
+      "raceHorse": "Horses used for racing purposes",
+      "accelerantOnly": "Coverage available exclusively through Accelerant underwriting platform",
+      "standard": "Coverage available through regular underwriting channels"
+    },
+    "importantRules": {
+      "valueBasedRestrictions": [
+        {
+          "rule": "Classic Major Medical with 0% co-pay requires horse value of $100,000 or more",
+          "minimumValue": 100000,
+          "coverageIds": ["classic-major-medical"]
+        },
+        {
+          "rule": "Classic Major Medical with 20% co-pay requires horse value of $20,000 or more",
+          "minimumValue": 20000,
+          "coverageIds": ["classic-major-medical"]
+        },
+        {
+          "rule": "Basic and Special Major Medical require horse value of $20,000 or more",
+          "minimumValue": 20000,
+          "coverageIds": ["basic-major-medical", "special-major-medical"]
+        },
+        {
+          "rule": "Colic Treatment requires horse value of $15,000 or more",
+          "minimumValue": 15000,
+          "coverageIds": ["colic-treatment"]
+        },
+        {
+          "rule": "External Accident Major Medical and Emergency Colic Surgery have NO value requirements",
+          "minimumValue": 0,
+          "coverageIds": ["external-accident-major-medical", "emergency-colic-surgery"]
+        }
+      ],
+      "disciplineBasedRestrictions": [
+        {
+          "rule": "Race Horses are INELIGIBLE for standard Surgical coverage",
+          "affectedCoverageIds": ["surgical"],
+          "raceHorseEligible": false
+        },
+        {
+          "rule": "Race Horses have specialized surgical options available",
+          "affectedCoverageIds": ["race-horse-surgical-standard", "race-horse-surgical-accelerant"],
+          "raceHorseExclusive": true
+        },
+        {
+          "rule": "Basic, Special, and External Accident Major Medical are available ONLY for Sport Horse or Western disciplines",
+          "affectedCoverageIds": ["basic-major-medical", "special-major-medical", "external-accident-major-medical"],
+          "allowedDisciplines": ["Sport Horse", "Western"]
+        }
+      ],
+      "underwritingPlatformRestrictions": [
+        {
+          "platform": "Accelerant Only",
+          "coverageIds": [
+            "basic-major-medical",
+            "special-major-medical",
+            "external-accident-major-medical",
+            "zero-deductible-surgical",
+            "race-horse-surgical-accelerant"
+          ]
+        }
+      ],
+      "deductibleAndCoPayRules": [
+        "Higher deductibles generally result in lower premiums",
+        "Zero co-pay options (0%) are more expensive than 20% co-pay options",
+        "Zero co-pay Classic Major Medical requires minimum $100,000 horse value",
+        "Most Accelerant-only products feature 0% co-pay"
+      ]
+    },
+    "comparisonGuidelines": {
+      "premiumSavingsStrategies": [
+        {
+          "strategy": "Choose $1,000 deductible over $500 deductible",
+          "savings": "Approximately 12-15% on Classic Major Medical"
+        },
+        {
+          "strategy": "Accept 20% co-pay instead of 0% co-pay",
+          "savings": "30-40% on Classic Major Medical premiums"
+        },
+        {
+          "strategy": "Western horses vs Sport Horses for Accelerant products",
+          "savings": "Approximately 10% savings"
+        },
+        {
+          "strategy": "External Accident coverage vs comprehensive medical",
+          "savings": "Significantly lower cost but limited to external accidents only"
+        }
+      ],
+      "decisionFactors": [
+        "Horse Value: Higher value horses qualify for more options",
+        "Discipline: Sport Horses typically have slightly higher premiums",
+        "Co-Pay Preference: Zero co-pay provides better out-of-pocket protection",
+        "Deductible Comfort: Higher deductibles lower premiums but increase claim costs",
+        "Underwriting Platform: Accelerant-only products often provide better terms",
+        "Limit Needs: Higher limits provide more protection but increase premiums"
+      ]
+    },
+    "exampleScenarios": [
+      {
+        "scenario": "High-Value Sport Horse",
+        "horseValue": 150000,
+        "discipline": "Sport Horse",
+        "eligibleCoverages": [
+          "classic-major-medical",
+          "basic-major-medical",
+          "special-major-medical",
+          "external-accident-major-medical",
+          "medical-assistance",
+          "emergency-colic-surgery",
+          "colic-treatment",
+          "surgical",
+          "zero-deductible-surgical"
+        ],
+        "recommendation": "Classic Major Medical with 0% co-pay provides best comprehensive coverage for high-value horses"
+      },
+      {
+        "scenario": "Mid-Value Western Horse",
+        "horseValue": 35000,
+        "discipline": "Western",
+        "eligibleCoverages": [
+          "classic-major-medical",
+          "basic-major-medical",
+          "special-major-medical",
+          "external-accident-major-medical",
+          "medical-assistance",
+          "emergency-colic-surgery",
+          "colic-treatment",
+          "surgical",
+          "zero-deductible-surgical"
+        ],
+        "recommendation": "Consider Basic or Special Major Medical through Accelerant for 0% co-pay benefit at reasonable cost"
+      },
+      {
+        "scenario": "Lower-Value Horse",
+        "horseValue": 12000,
+        "discipline": "Any",
+        "eligibleCoverages": [
+          "medical-assistance",
+          "external-accident-major-medical",
+          "emergency-colic-surgery",
+          "surgical"
+        ],
+        "ineligibleCoverages": [
+          "classic-major-medical",
+          "basic-major-medical",
+          "special-major-medical",
+          "colic-treatment"
+        ],
+        "recommendation": "Medical Assistance provides best comprehensive coverage for horses under $20,000"
+      },
+      {
+        "scenario": "Race Horse",
+        "horseValue": null,
+        "discipline": "Race Horse",
+        "eligibleCoverages": [
+          "classic-major-medical",
+          "basic-major-medical",
+          "special-major-medical",
+          "race-horse-surgical-standard",
+          "race-horse-surgical-accelerant",
+          "medical-assistance",
+          "emergency-colic-surgery"
+        ],
+        "ineligibleCoverages": [
+          "surgical"
+        ],
+        "specialNotes": "Race Horses are specifically excluded from standard Surgical coverage",
+        "recommendation": "Race Horse Surgical through Accelerant, combined with appropriate Major Medical based on value"
+      }
+    ]
+  }
+}
+
