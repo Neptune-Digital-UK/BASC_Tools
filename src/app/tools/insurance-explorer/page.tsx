@@ -394,15 +394,15 @@ export default function InsuranceExplorerPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <ToolNavigation toolName="Insurance Plan Explorer" />
+      <ToolNavigation toolName="Medical Product Explorer" />
       
       <main className="flex-1 py-8">
         <div className="container mx-auto px-4 max-w-7xl">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Insurance Plan Explorer</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Medical Product Explorer</h1>
             <p className="text-gray-600">
-              Compare insurance plans side-by-side to help clients find the right coverage. Expand multiple rows to compare detailed information.
+              Compare medical insurance products side-by-side to help clients find the right coverage. Expand multiple rows to compare detailed information.
             </p>
           </div>
 
@@ -806,7 +806,7 @@ export default function InsuranceExplorerPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center text-gray-600">
             <p className="text-sm">
-              This tool provides general information about insurance plans. Always verify coverage details
+              This tool provides general information about medical insurance products. Always verify coverage details
               and consult with underwriting for specific cases.
             </p>
           </div>

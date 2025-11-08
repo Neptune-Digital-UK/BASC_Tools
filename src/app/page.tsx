@@ -154,17 +154,17 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* Insurance Plan Explorer Tool */}
+            {/* Medical Product Explorer Tool */}
             <Card className="hover:shadow-lg transition-shadow duration-200 shadow-sm">
               <CardHeader>
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="p-2 bg-indigo-100 rounded-lg">
                     <Database className="h-6 w-6 text-indigo-600" />
                   </div>
-                  <CardTitle className="text-lg">Insurance Plan Explorer</CardTitle>
+                  <CardTitle className="text-lg">Medical Product Explorer</CardTitle>
                 </div>
                 <CardDescription>
-                  Search and compare all available insurance plans with detailed coverage information, eligibility requirements, and exclusions.
+                  Search and compare all available medical insurance products with detailed coverage information, eligibility requirements, and premium rates.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -172,9 +172,9 @@ export default function Home() {
                   <div className="text-sm text-gray-600">
                     <strong>Features:</strong>
                     <ul className="mt-1 ml-4 list-disc">
-                      <li>Comprehensive plan database</li>
-                      <li>Advanced search & filtering</li>
-                      <li>Side-by-side comparison</li>
+                      <li>Comprehensive product database</li>
+                      <li>Advanced search & filtering by horse category</li>
+                      <li>Premium rates & deductibles</li>
                       <li>Coverage limits & exclusions</li>
                       <li>State availability lookup</li>
                     </ul>
