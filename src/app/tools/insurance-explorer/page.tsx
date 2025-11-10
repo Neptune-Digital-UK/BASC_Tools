@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Combobox, ComboboxTrigger, ComboboxContent, ComboboxInput, ComboboxList, ComboboxEmpty, ComboboxGroup, ComboboxItem } from '@/components/ui/combobox'
 import ToolNavigation from '@/components/ToolNavigation'
-import { Search, X, ChevronDown, ChevronUp, FileText } from 'lucide-react'
+import { Search, X, ChevronDown, ChevronUp, FileText, Plus, Minus, ChevronLeft, ChevronRight, List, LayoutGrid } from 'lucide-react'
 
 interface RateOption {
   horseCategory: string
@@ -300,6 +300,10 @@ export default function InsuranceExplorerPage() {
   const [selectedCoPay, setSelectedCoPay] = useState<string>('all')
   const [selectedState, setSelectedState] = useState<string>('all')
   const [selectedHorseCategory, setSelectedHorseCategory] = useState<string>('all')
+  const [comparedProducts, setComparedProducts] = useState<string[]>([])
+  const [showLimitWarning, setShowLimitWarning] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'comparison'>('list')
   const [expandedPlans, setExpandedPlans] = useState<string[]>([])
 
   // Get unique companies and copay options
@@ -374,6 +378,7 @@ export default function InsuranceExplorerPage() {
 
   const hasActiveFilters = searchTerm !== '' || selectedCompany !== 'all' || selectedCoPay !== 'all' || selectedState !== 'all' || selectedHorseCategory !== 'all'
 
+  // List view helper functions
   const togglePlanExpansion = (planId: string) => {
     setExpandedPlans(prev => 
       prev.includes(planId) 
@@ -392,420 +397,739 @@ export default function InsuranceExplorerPage() {
     setExpandedPlans([])
   }
 
+  // Comparison helper functions
+  const isProductCompared = (planId: string) => comparedProducts.includes(planId)
+
+  const toggleProductComparison = (planId: string) => {
+    if (comparedProducts.includes(planId)) {
+      // Remove from comparison
+      setComparedProducts(prev => prev.filter(id => id !== planId))
+      setShowLimitWarning(false)
+    } else {
+      // Add to comparison (max 4)
+      if (comparedProducts.length >= 4) {
+        setShowLimitWarning(true)
+        setTimeout(() => setShowLimitWarning(false), 3000)
+        return
+      }
+      setComparedProducts(prev => [...prev, planId])
+    }
+  }
+
+  const removeProductFromComparison = (planId: string) => {
+    setComparedProducts(prev => prev.filter(id => id !== planId))
+    setShowLimitWarning(false)
+  }
+
+  // Auto-select first product when filters change (only in comparison view)
+  useEffect(() => {
+    if (viewMode === 'comparison' && filteredPlans.length > 0 && comparedProducts.length === 0) {
+      setComparedProducts([filteredPlans[0].id])
+    }
+  }, [filteredPlans, viewMode])
+
+  // Get compared product details
+  const comparedProductDetails = useMemo(() => {
+    return comparedProducts.map(id => 
+      insurancePlans.find(plan => plan.id === id)
+    ).filter(Boolean) as InsurancePlan[]
+  }, [comparedProducts])
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <ToolNavigation toolName="Medical Product Explorer" />
       
-      <main className="flex-1 py-8">
-        <div className="container mx-auto px-4 max-w-7xl">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Medical Product Explorer</h1>
-            <p className="text-gray-600">
-              Compare medical insurance products side-by-side to help clients find the right coverage. Expand multiple rows to compare detailed information.
-            </p>
-          </div>
+      <main className="flex-1 overflow-hidden flex flex-col">
+        {/* Header and Filters Section */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="px-6 py-4">
+            {/* Header with View Toggle */}
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-1">Medical Product Explorer</h1>
+                <p className="text-sm text-gray-600">
+                  Select products to compare side-by-side
+                </p>
+              </div>
 
-          {/* Search and Filter Controls */}
-          <Card className="mb-6 shadow-sm">
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                {/* Search Bar and Filters Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-6 gap-3">
-                  {/* Search Bar */}
-                  <div className="lg:col-span-2 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
-                    <Input
-                      type="text"
-                      placeholder="Search plans..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9 pr-10 h-10"
-                    />
-                    {searchTerm && (
-                      <button
-                        onClick={() => setSearchTerm('')}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 z-10"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
+              {/* View Toggle */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="gap-2"
+                >
+                  <List className="h-4 w-4" />
+                  List View
+                </Button>
+                <Button
+                  variant={viewMode === 'comparison' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('comparison')}
+                  className="gap-2"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  Comparison View
+                </Button>
+              </div>
+            </div>
 
-                  {/* Horse Category Filter */}
-                  <div>
-                    <Combobox
-                      data={horseCategories.map(cat => ({ 
-                        value: cat, 
-                        label: cat === 'all' ? 'All Categories' : cat 
-                      }))}
-                      type="category"
-                      value={selectedHorseCategory}
-                      onValueChange={setSelectedHorseCategory}
-                    >
-                      <ComboboxTrigger className="h-10 text-sm" />
-                      <ComboboxContent>
-                        <ComboboxInput />
-                        <ComboboxList>
-                          <ComboboxEmpty />
-                          <ComboboxGroup>
-                            {horseCategories.map(cat => (
-                              <ComboboxItem key={cat} value={cat}>
-                                {cat === 'all' ? 'All Categories' : cat}
-                              </ComboboxItem>
-                            ))}
-                          </ComboboxGroup>
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
-                  </div>
-
-                  {/* Company Filter */}
-                  <div>
-                    <Combobox
-                      data={companies.map(comp => ({ 
-                        value: comp, 
-                        label: comp === 'all' ? 'All Companies' : comp 
-                      }))}
-                      type="company"
-                      value={selectedCompany}
-                      onValueChange={setSelectedCompany}
-                    >
-                      <ComboboxTrigger className="h-10 text-sm" />
-                      <ComboboxContent>
-                        <ComboboxInput />
-                        <ComboboxList>
-                          <ComboboxEmpty />
-                          <ComboboxGroup>
-                            {companies.map(comp => (
-                              <ComboboxItem key={comp} value={comp}>
-                                {comp === 'all' ? 'All Companies' : comp}
-                              </ComboboxItem>
-                            ))}
-                          </ComboboxGroup>
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
-                  </div>
-
-                  {/* Co-Pay Filter */}
-                  <div>
-                    <Combobox
-                      data={coPays.map(pay => ({ 
-                        value: pay, 
-                        label: pay === 'all' ? 'All Co-Pays' : pay 
-                      }))}
-                      type="co-pay"
-                      value={selectedCoPay}
-                      onValueChange={setSelectedCoPay}
-                    >
-                      <ComboboxTrigger className="h-10 text-sm" />
-                      <ComboboxContent>
-                        <ComboboxInput />
-                        <ComboboxList>
-                          <ComboboxEmpty />
-                          <ComboboxGroup>
-                            {coPays.map(pay => (
-                              <ComboboxItem key={pay} value={pay}>
-                                {pay === 'all' ? 'All Co-Pays' : pay}
-                              </ComboboxItem>
-                            ))}
-                          </ComboboxGroup>
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
-                  </div>
-
-                  {/* State Filter */}
-                  <div>
-                    <Combobox
-                      data={[{ value: 'all', label: 'All States' }, ...US_STATES.map(state => ({ 
-                        value: state.code, 
-                        label: `${state.name} (${state.code})` 
-                      }))]}
-                      type="state"
-                      value={selectedState}
-                      onValueChange={setSelectedState}
-                    >
-                      <ComboboxTrigger className="h-10 text-sm" />
-                      <ComboboxContent>
-                        <ComboboxInput />
-                        <ComboboxList>
-                          <ComboboxEmpty />
-                          <ComboboxGroup>
-                            <ComboboxItem value="all">All States</ComboboxItem>
-                            {US_STATES.map(state => (
-                              <ComboboxItem key={state.code} value={state.code}>
-                                {state.name} ({state.code})
-                              </ComboboxItem>
-                            ))}
-                          </ComboboxGroup>
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
-                  </div>
-                </div>
-
-                {/* Clear Filters Button */}
-                {hasActiveFilters && (
-                  <div className="flex justify-end">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearFilters}
-                      className="gap-2 h-8"
+            {/* Filters - Horizontal Layout */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                {/* Search Bar */}
+                <div className="md:col-span-2 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
+                  <Input
+                    type="text"
+                    placeholder="Search plans..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 pr-10 h-10 text-sm"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 z-10"
                     >
                       <X className="h-4 w-4" />
-                      Clear All Filters
+                    </button>
+                  )}
+                </div>
+
+                {/* Horse Category Filter */}
+                <div>
+                  <Combobox
+                    data={horseCategories.map(cat => ({ 
+                      value: cat, 
+                      label: cat === 'all' ? 'All Categories' : cat 
+                    }))}
+                    type="category"
+                    value={selectedHorseCategory}
+                    onValueChange={setSelectedHorseCategory}
+                  >
+                    <ComboboxTrigger className="h-10 text-sm w-full" />
+                    <ComboboxContent>
+                      <ComboboxInput />
+                      <ComboboxList>
+                        <ComboboxEmpty />
+                        <ComboboxGroup>
+                          {horseCategories.map(cat => (
+                            <ComboboxItem key={cat} value={cat}>
+                              {cat === 'all' ? 'All Categories' : cat}
+                            </ComboboxItem>
+                          ))}
+                        </ComboboxGroup>
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                </div>
+
+                {/* Company Filter */}
+                <div>
+                  <Combobox
+                    data={companies.map(comp => ({ 
+                      value: comp, 
+                      label: comp === 'all' ? 'All Companies' : comp 
+                    }))}
+                    type="company"
+                    value={selectedCompany}
+                    onValueChange={setSelectedCompany}
+                  >
+                    <ComboboxTrigger className="h-10 text-sm w-full" />
+                    <ComboboxContent>
+                      <ComboboxInput />
+                      <ComboboxList>
+                        <ComboboxEmpty />
+                        <ComboboxGroup>
+                          {companies.map(comp => (
+                            <ComboboxItem key={comp} value={comp}>
+                              {comp === 'all' ? 'All Companies' : comp}
+                            </ComboboxItem>
+                          ))}
+                        </ComboboxGroup>
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                </div>
+
+                {/* Co-Pay Filter */}
+                <div>
+                  <Combobox
+                    data={coPays.map(pay => ({ 
+                      value: pay, 
+                      label: pay === 'all' ? 'All Co-Pays' : pay 
+                    }))}
+                    type="co-pay"
+                    value={selectedCoPay}
+                    onValueChange={setSelectedCoPay}
+                  >
+                    <ComboboxTrigger className="h-10 text-sm w-full" />
+                    <ComboboxContent>
+                      <ComboboxInput />
+                      <ComboboxList>
+                        <ComboboxEmpty />
+                        <ComboboxGroup>
+                          {coPays.map(pay => (
+                            <ComboboxItem key={pay} value={pay}>
+                              {pay === 'all' ? 'All Co-Pays' : pay}
+                            </ComboboxItem>
+                          ))}
+                        </ComboboxGroup>
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                </div>
+
+                {/* State Filter */}
+                <div>
+                  <Combobox
+                    data={[{ value: 'all', label: 'All States' }, ...US_STATES.map(state => ({ 
+                      value: state.code, 
+                      label: `${state.name} (${state.code})` 
+                    }))]}
+                    type="state"
+                    value={selectedState}
+                    onValueChange={setSelectedState}
+                  >
+                    <ComboboxTrigger className="h-10 text-sm w-full" />
+                    <ComboboxContent>
+                      <ComboboxInput />
+                      <ComboboxList>
+                        <ComboboxEmpty />
+                        <ComboboxGroup>
+                          <ComboboxItem value="all">All States</ComboboxItem>
+                          {US_STATES.map(state => (
+                            <ComboboxItem key={state.code} value={state.code}>
+                              {state.name} ({state.code})
+                            </ComboboxItem>
+                          ))}
+                        </ComboboxGroup>
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                </div>
+              </div>
+
+              {/* Clear Filters Button */}
+              {hasActiveFilters && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="gap-2 h-8"
+                  >
+                    <X className="h-4 w-4" />
+                    Clear All Filters
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Conditional Rendering Based on View Mode */}
+        {viewMode === 'list' ? (
+          // Original List/Table View
+          <div className="flex-1 py-8 overflow-y-auto">
+            <div className="container mx-auto px-4 max-w-7xl">
+              {/* Results Count and Controls */}
+              <div className="mb-4 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Showing {filteredPlans.length} of {insurancePlans.length} plans
+                </div>
+                {filteredPlans.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={expandAll}
+                      disabled={expandedPlans.length === filteredPlans.length}
+                      className="text-xs"
+                    >
+                      Expand All
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={collapseAll}
+                      disabled={expandedPlans.length === 0}
+                      className="text-xs"
+                    >
+                      Collapse All
                     </Button>
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Results Count and Controls */}
-          <div className="mb-4 flex items-center justify-between">
-            <div className="text-sm text-gray-600">
-              Showing {filteredPlans.length} of {insurancePlans.length} plans
-            </div>
-            {filteredPlans.length > 0 && (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={expandAll}
-                  disabled={expandedPlans.length === filteredPlans.length}
-                  className="text-xs"
-                >
-                  Expand All
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={collapseAll}
-                  disabled={expandedPlans.length === 0}
-                  className="text-xs"
-                >
-                  Collapse All
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Plans Table */}
-          {filteredPlans.length === 0 ? (
-            <Card className="shadow-sm">
-              <CardContent className="py-12 text-center">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No plans found</h3>
-                <p className="text-gray-600 mb-4">
-                  Try adjusting your search or filter criteria
-                </p>
-                {hasActiveFilters && (
-                  <Button onClick={clearFilters} variant="outline" size="sm">
-                    Clear all filters
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Plan Name
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Company
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Co-Pay
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Age Eligibility
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Use & Value
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                        Details
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredPlans.map(plan => (
-                      <>
-                        <tr key={plan.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                            {plan.planName}
-                          </td>
-                          <td className="px-4 py-4 text-sm text-gray-600">
-                            {plan.company}
-                          </td>
-                          <td className="px-4 py-4 text-sm">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              plan.coPay === 'None' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-amber-100 text-amber-800'
-                            }`}>
-                              {plan.coPay}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 text-sm text-gray-600">
-                            {plan.ageEligibility}
-                          </td>
-                          <td className="px-4 py-4 text-sm text-gray-600 max-w-xs">
-                            <div className="truncate" title={plan.useAndValueEligibility}>
-                              {plan.useAndValueEligibility}
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 text-center">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => togglePlanExpansion(plan.id)}
-                              className="h-8 w-8 p-0"
-                            >
-                              {isExpanded(plan.id) ? (
-                                <ChevronUp className="h-4 w-4" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </td>
+              {/* Plans Table */}
+              {filteredPlans.length === 0 ? (
+                <Card className="shadow-sm">
+                  <CardContent className="py-12 text-center">
+                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No plans found</h3>
+                    <p className="text-gray-600 mb-4">
+                      Try adjusting your search or filter criteria
+                    </p>
+                    {hasActiveFilters && (
+                      <Button onClick={clearFilters} variant="outline" size="sm">
+                        Clear all filters
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Plan Name
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Company
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Co-Pay
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Age Eligibility
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Use & Value
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                            Details
+                          </th>
                         </tr>
-                        {isExpanded(plan.id) && (
-                          <tr key={`${plan.id}-details`} className="bg-gray-50">
-                            <td colSpan={6} className="px-4 py-6">
-                              <div className="space-y-6">
-                                {/* Rates Table */}
-                                {(() => {
-                                  const filteredRates = getFilteredRates(plan)
-                                  return filteredRates.length > 0 && (
-                                    <div>
-                                      <h4 className="font-semibold text-sm text-gray-700 mb-3">
-                                        Premium Rates & Coverage Options
-                                        {selectedHorseCategory !== 'all' && (
-                                          <span className="ml-2 text-xs font-normal text-blue-600">
-                                            (Filtered for {selectedHorseCategory})
-                                          </span>
-                                        )}
-                                      </h4>
-                                      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                                        <table className="w-full">
-                                          <thead className="bg-gray-100 border-b">
-                                            <tr>
-                                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
-                                                Horse Category
-                                              </th>
-                                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
-                                                Sum Insured
-                                              </th>
-                                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
-                                                Deductible
-                                              </th>
-                                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
-                                                Co-Pay
-                                              </th>
-                                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
-                                                Limit
-                                              </th>
-                                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
-                                                Premium
-                                              </th>
-                                              {filteredRates.some(r => r.notes) && (
-                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
-                                                  Notes
-                                                </th>
-                                              )}
-                                            </tr>
-                                          </thead>
-                                          <tbody className="divide-y divide-gray-100">
-                                            {filteredRates.map((rate, idx) => (
-                                            <tr key={idx} className="hover:bg-gray-50">
-                                              <td className="px-3 py-2 text-xs font-medium text-blue-700">
-                                                {rate.horseCategory}
-                                              </td>
-                                              <td className="px-3 py-2 text-xs text-gray-700">
-                                                {rate.sumInsured}
-                                              </td>
-                                              <td className="px-3 py-2 text-xs text-gray-700">
-                                                {rate.deductible}
-                                              </td>
-                                              <td className="px-3 py-2 text-xs text-gray-700">
-                                                {rate.coPay}
-                                              </td>
-                                              <td className="px-3 py-2 text-xs font-medium text-gray-900">
-                                                {rate.limit}
-                                              </td>
-                                              <td className="px-3 py-2 text-xs font-semibold text-green-700">
-                                                {rate.premium}
-                                              </td>
-                                              {filteredRates.some(r => r.notes) && (
-                                                <td className="px-3 py-2 text-xs text-gray-500 italic">
-                                                  {rate.notes}
-                                                </td>
-                                              )}
-                                            </tr>
-                                          ))}
-                                          </tbody>
-                                        </table>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {filteredPlans.map(plan => (
+                          <>
+                            <tr key={plan.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-4 py-4 text-sm font-medium text-gray-900">
+                                {plan.planName}
+                              </td>
+                              <td className="px-4 py-4 text-sm text-gray-600">
+                                {plan.company}
+                              </td>
+                              <td className="px-4 py-4 text-sm">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  plan.coPay === 'None' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-amber-100 text-amber-800'
+                                }`}>
+                                  {plan.coPay}
+                                </span>
+                              </td>
+                              <td className="px-4 py-4 text-sm text-gray-600">
+                                {plan.ageEligibility}
+                              </td>
+                              <td className="px-4 py-4 text-sm text-gray-600 max-w-xs">
+                                <div className="truncate" title={plan.useAndValueEligibility}>
+                                  {plan.useAndValueEligibility}
+                                </div>
+                              </td>
+                              <td className="px-4 py-4 text-center">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => togglePlanExpansion(plan.id)}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  {isExpanded(plan.id) ? (
+                                    <ChevronUp className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </td>
+                            </tr>
+                            {isExpanded(plan.id) && (
+                              <tr key={`${plan.id}-details`} className="bg-gray-50">
+                                <td colSpan={6} className="px-4 py-6">
+                                  <div className="space-y-6">
+                                    {/* Rates Table */}
+                                    {(() => {
+                                      const filteredRates = getFilteredRates(plan)
+                                      return filteredRates.length > 0 && (
+                                        <div>
+                                          <h4 className="font-semibold text-sm text-gray-700 mb-3">
+                                            Premium Rates & Coverage Options
+                                            {selectedHorseCategory !== 'all' && (
+                                              <span className="ml-2 text-xs font-normal text-blue-600">
+                                                (Filtered for {selectedHorseCategory})
+                                              </span>
+                                            )}
+                                          </h4>
+                                          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                            <table className="w-full">
+                                              <thead className="bg-gray-100 border-b">
+                                                <tr>
+                                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
+                                                    Horse Category
+                                                  </th>
+                                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
+                                                    Sum Insured
+                                                  </th>
+                                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
+                                                    Deductible
+                                                  </th>
+                                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
+                                                    Co-Pay
+                                                  </th>
+                                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
+                                                    Limit
+                                                  </th>
+                                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
+                                                    Premium
+                                                  </th>
+                                                  {filteredRates.some(r => r.notes) && (
+                                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
+                                                      Notes
+                                                    </th>
+                                                  )}
+                                                </tr>
+                                              </thead>
+                                              <tbody className="divide-y divide-gray-100">
+                                                {filteredRates.map((rate, idx) => (
+                                                  <tr key={idx} className="hover:bg-gray-50">
+                                                    <td className="px-3 py-2 text-xs font-medium text-blue-700">
+                                                      {rate.horseCategory}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-xs text-gray-700">
+                                                      {rate.sumInsured}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-xs text-gray-700">
+                                                      {rate.deductible}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-xs text-gray-700">
+                                                      {rate.coPay}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-xs font-medium text-gray-900">
+                                                      {rate.limit}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-xs font-semibold text-green-700">
+                                                      {rate.premium}
+                                                    </td>
+                                                    {filteredRates.some(r => r.notes) && (
+                                                      <td className="px-3 py-2 text-xs text-gray-500 italic">
+                                                        {rate.notes}
+                                                      </td>
+                                                    )}
+                                                  </tr>
+                                                ))}
+                                              </tbody>
+                                            </table>
+                                          </div>
+                                        </div>
+                                      )
+                                    })()}
+
+                                    {/* Plan Details Grid */}
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                      <div>
+                                        <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                                          Use & Value Eligibility (Full)
+                                        </h4>
+                                        <p className="text-sm text-gray-600">{plan.useAndValueEligibility}</p>
+                                      </div>
+                                      <div>
+                                        <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                                          State Filing Approved
+                                        </h4>
+                                        <p className="text-sm text-gray-600">{plan.stateFilingApproved}</p>
                                       </div>
                                     </div>
-                                  )
-                                })()}
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                      <div>
+                                        <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                                          Special Limits
+                                        </h4>
+                                        <p className="text-sm text-gray-600">{plan.specialLimits}</p>
+                                      </div>
+                                      <div>
+                                        <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                                          Exclusions
+                                        </h4>
+                                        <p className="text-sm text-gray-600">{plan.exclusions}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              )}
+            </div>
+          </div>
+        ) : (
+          // New Comparison View
+          <div className="flex-1 flex overflow-hidden relative">
+          {/* Left Sidebar - Product List Only */}
+          <aside className={`bg-white border-r border-gray-200 flex flex-col overflow-hidden transition-all duration-300 ${
+            isSidebarCollapsed ? 'w-0' : 'w-64'
+          }`}>
+            {!isSidebarCollapsed && (
+              <>
+                {/* Header with count */}
+                <div className="p-3 border-b border-gray-200">
+                  <div className="text-xs font-medium text-gray-700">
+                    {filteredPlans.length} of {insurancePlans.length} plans
+                  </div>
+                </div>
 
-                                {/* Plan Details Grid */}
-                                <div className="grid md:grid-cols-2 gap-4">
-                                  <div>
-                                    <h4 className="font-semibold text-sm text-gray-700 mb-2">
-                                      Use & Value Eligibility (Full)
-                                    </h4>
-                                    <p className="text-sm text-gray-600">{plan.useAndValueEligibility}</p>
-                                  </div>
-                                  <div>
-                                    <h4 className="font-semibold text-sm text-gray-700 mb-2">
-                                      State Filing Approved
-                                    </h4>
-                                    <p className="text-sm text-gray-600">{plan.stateFilingApproved}</p>
-                                  </div>
-                                </div>
-                                <div className="grid md:grid-cols-2 gap-4">
-                                  <div>
-                                    <h4 className="font-semibold text-sm text-gray-700 mb-2">
-                                      Special Limits
-                                    </h4>
-                                    <p className="text-sm text-gray-600">{plan.specialLimits}</p>
-                                  </div>
-                                  <div>
-                                    <h4 className="font-semibold text-sm text-gray-700 mb-2">
-                                      Exclusions
-                                    </h4>
-                                    <p className="text-sm text-gray-600">{plan.exclusions}</p>
-                                  </div>
+                {/* Product List - Scrollable */}
+                <div className="flex-1 overflow-y-auto">
+                  {filteredPlans.length === 0 ? (
+                    <div className="text-center py-12 px-4">
+                      <FileText className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+                      <h3 className="text-sm font-medium text-gray-900 mb-1">No plans found</h3>
+                      <p className="text-xs text-gray-600 mb-3">
+                        Try adjusting your filters
+                      </p>
+                      {hasActiveFilters && (
+                        <Button onClick={clearFilters} variant="outline" size="sm">
+                          Clear filters
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-200">
+                      {filteredPlans.map(plan => {
+                        const isCompared = isProductCompared(plan.id)
+                        
+                        return (
+                          <div
+                            key={plan.id}
+                            className={`p-3 cursor-pointer transition-all ${
+                              isCompared 
+                                ? 'bg-blue-50 border-l-4 border-l-blue-500' 
+                                : 'hover:bg-gray-50'
+                            }`}
+                            onClick={() => toggleProductComparison(plan.id)}
+                          >
+                            <h3 className={`text-sm font-medium ${
+                              isCompared ? 'text-blue-900' : 'text-gray-900'
+                            }`}>
+                              {plan.planName}
+                            </h3>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </aside>
+
+          {/* Collapse/Expand Toggle Button */}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="absolute left-0 top-1/2 -translate-y-1/2 bg-white border border-gray-300 rounded-r-md p-1.5 hover:bg-gray-50 transition-all z-10 shadow-sm"
+            style={{ left: isSidebarCollapsed ? '0' : '256px' }}
+          >
+            {isSidebarCollapsed ? (
+              <ChevronRight className="h-4 w-4 text-gray-600" />
+            ) : (
+              <ChevronLeft className="h-4 w-4 text-gray-600" />
+            )}
+          </button>
+
+          {/* Right Detail Panel */}
+          <div className="flex-1 overflow-hidden bg-gray-50">
+            <div className="h-full flex flex-col">
+              {/* Header with count and warning */}
+              <div className="bg-white border-b border-gray-200 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Product Comparison
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      {comparedProducts.length} of 4 products selected
+                    </p>
+                  </div>
+                  {showLimitWarning && (
+                    <div className="bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                      <p className="text-xs text-amber-800">
+                        Maximum 4 products can be compared
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Horizontal scrolling product cards */}
+              <div className="flex-1 overflow-x-auto overflow-y-auto p-6">
+                {comparedProductDetails.length === 0 ? (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center">
+                      <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No products selected
+                      </h3>
+                      <p className="text-gray-600">
+                        Click on a product from the list to compare
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-6 h-full">
+                    {comparedProductDetails.map(plan => {
+                      const filteredRates = getFilteredRates(plan)
+                      
+                      return (
+                        <Card key={plan.id} className="flex-shrink-0 w-[525px] shadow-lg">
+                          <CardHeader className="pb-3 border-b bg-gray-50">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <CardTitle className="text-lg">{plan.planName}</CardTitle>
+                                <CardDescription className="text-sm mt-1">
+                                  {plan.company}
+                                </CardDescription>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 hover:bg-gray-200"
+                                onClick={() => removeProductFromComparison(plan.id)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardHeader>
+                          
+                          <CardContent className="pt-4 space-y-4 overflow-y-auto max-h-[calc(100vh-250px)]">
+                            {/* Co-Pay Badge */}
+                            <div>
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                plan.coPay === 'None' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}>
+                                Co-Pay: {plan.coPay}
+                              </span>
+                            </div>
+
+                            {/* Age Eligibility */}
+                            <div>
+                              <h4 className="font-semibold text-sm text-gray-700 mb-1">
+                                Age Eligibility
+                              </h4>
+                              <p className="text-sm text-gray-600">{plan.ageEligibility}</p>
+                            </div>
+
+                            {/* Use & Value Eligibility */}
+                            <div>
+                              <h4 className="font-semibold text-sm text-gray-700 mb-1">
+                                Use & Value Eligibility
+                              </h4>
+                              <p className="text-sm text-gray-600">{plan.useAndValueEligibility}</p>
+                            </div>
+
+                            {/* Rates Table */}
+                            {filteredRates.length > 0 && (
+                              <div>
+                                <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                                  Premium Rates & Coverage
+                                  {selectedHorseCategory !== 'all' && (
+                                    <span className="ml-2 text-xs font-normal text-blue-600">
+                                      (Filtered for {selectedHorseCategory})
+                                    </span>
+                                  )}
+                                </h4>
+                                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                  <table className="w-full text-xs">
+                                    <thead className="bg-gray-50 border-b">
+                                      <tr>
+                                        <th className="px-2 py-1.5 text-left font-medium text-gray-600">
+                                          Category
+                                        </th>
+                                        <th className="px-2 py-1.5 text-left font-medium text-gray-600">
+                                          Deductible
+                                        </th>
+                                        <th className="px-2 py-1.5 text-left font-medium text-gray-600">
+                                          Limit
+                                        </th>
+                                        <th className="px-2 py-1.5 text-left font-medium text-gray-600">
+                                          Premium
+                                        </th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                      {filteredRates.map((rate, idx) => (
+                                        <tr key={idx}>
+                                          <td className="px-2 py-1.5 font-medium text-blue-700">
+                                            {rate.horseCategory}
+                                          </td>
+                                          <td className="px-2 py-1.5 text-gray-700">
+                                            {rate.deductible}
+                                          </td>
+                                          <td className="px-2 py-1.5 font-medium text-gray-900">
+                                            {rate.limit}
+                                          </td>
+                                          <td className="px-2 py-1.5 font-semibold text-green-700">
+                                            {rate.premium}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
                                 </div>
                               </div>
-                            </td>
-                          </tr>
-                        )}
-                      </>
-                    ))}
-                  </tbody>
-                </table>
+                            )}
+
+                            {/* Special Limits */}
+                            <div>
+                              <h4 className="font-semibold text-sm text-gray-700 mb-1">
+                                Special Limits
+                              </h4>
+                              <p className="text-sm text-gray-600">{plan.specialLimits}</p>
+                            </div>
+
+                            {/* Exclusions */}
+                            <div>
+                              <h4 className="font-semibold text-sm text-gray-700 mb-1">
+                                Exclusions
+                              </h4>
+                              <p className="text-sm text-gray-600">{plan.exclusions}</p>
+                            </div>
+
+                            {/* State Filing */}
+                            <div>
+                              <h4 className="font-semibold text-sm text-gray-700 mb-1">
+                                State Filing Approved
+                              </h4>
+                              <p className="text-xs text-gray-600">{plan.stateFilingApproved}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
-            </Card>
-          )}
+            </div>
+          </div>
         </div>
+        )}
       </main>
 
       {/* Footer */}
-      <footer className="border-t bg-white shadow-sm mt-12">
-        <div className="container mx-auto px-4 py-8">
+      <footer className="border-t bg-white shadow-sm">
+        <div className="px-4 py-4">
           <div className="text-center text-gray-600">
-            <p className="text-sm">
+            <p className="text-xs">
               This tool provides general information about medical insurance products. Always verify coverage details
               and consult with underwriting for specific cases.
             </p>
